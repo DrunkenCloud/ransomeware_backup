@@ -92,22 +92,12 @@ def extract_features(file_path):
 
 
 class MyEventHandler(FileSystemEventHandler):
-    def on_closed(self, event):
-        if event.is_directory:
-            return
-
-        file_path = event.src_path
-        file_extension = os.path.splitext(file_path)[1].lower()
-
-        if file_extension == '.dll' or file_extension == '.exe':
-            print(f"File closed: {file_path}")
-            
+    def process_file(self, file_path):
+        if os.path.splitext(file_path)[1].lower() in ['.dll', '.exe']:
+            print(f"Processing file: {file_path}")
             extracted_features = extract_features(file_path)
-
             if extracted_features:
-                # Prepare features for the model, ensuring correct order and format
                 features_df = pd.DataFrame([extracted_features])[MODEL_FEATURES]
-                
                 try:
                     prediction = model.predict(features_df)
                     if prediction[0] == 1:
@@ -116,11 +106,17 @@ class MyEventHandler(FileSystemEventHandler):
                         print(f"Prediction for {file_path}: Ransomware (0)")
                 except Exception as e:
                     print(f"Error during prediction for {file_path}: {e}")
-            else:
-                print(f"Could not extract features from {file_path}. Skipping prediction.")
+
+    def on_created(self, event):
+        if not event.is_directory:
+            self.process_file(event.src_path)
+
+    def on_modified(self, event):
+        if not event.is_directory:
+            self.process_file(event.src_path)
 
 if __name__ == "__main__":
-    path = "/home/drunkencloud/Downloads/"  # Monitor the current directory
+    path = "."  # Monitor the current directory
     event_handler = MyEventHandler()
     observer = Observer()
     observer.schedule(event_handler, path, recursive=True)
