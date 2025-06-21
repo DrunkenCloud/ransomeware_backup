@@ -10,6 +10,12 @@ from watchdog.events import FileSystemEventHandler
 
 # https://github.com/kh4sh3i/Ransomware-Samples
 # Load the trained model
+
+def log_event(message):
+    print(message)
+    with open("detection_logs.txt", "a") as f:
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
+
 try:
     model = joblib.load('ransomware_model.joblib')
     print("Ransomware detection model loaded successfully.")
@@ -94,16 +100,16 @@ def extract_features(file_path):
 class MyEventHandler(FileSystemEventHandler):
     def process_file(self, file_path):
         if os.path.splitext(file_path)[1].lower() in ['.dll', '.exe']:
-            print(f"Processing file: {file_path}")
+            log_event(f"Processing file: {file_path}")
             extracted_features = extract_features(file_path)
             if extracted_features:
                 features_df = pd.DataFrame([extracted_features])[MODEL_FEATURES]
                 try:
                     prediction = model.predict(features_df)
                     if prediction[0] == 1:
-                        print(f"Prediction for {file_path}: Benign (1)")
+                        log_event(f"Prediction for {file_path}: Benign (1)")
                     else:
-                        print(f"Prediction for {file_path}: Ransomware (0)")
+                        log_event(f"Prediction for {file_path}: Ransomware (0)")
                 except Exception as e:
                     print(f"Error during prediction for {file_path}: {e}")
 
