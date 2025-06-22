@@ -122,7 +122,7 @@ class MyEventHandler(FileSystemEventHandler):
             self.process_file(event.src_path)
 
 if __name__ == "__main__":
-    path = "."  # Monitor the current directory
+    path = "."
     event_handler = MyEventHandler()
     observer = Observer()
     observer.schedule(event_handler, path, recursive=True)
