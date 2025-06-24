@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ransomware Detection</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #e0f7fa, #fdfbfb);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #fff;
+            padding: 40px 50px;
+            margin-top: 40px;
+            border-radius: 14px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 2em;
+            color: #2c3e50;
+        }
+
+        #status-box {
+            font-size: 1.1em;
+            margin: 20px 0;
+            padding: 12px 16px;
+            border-left: 5px solid #3498db;
+            background-color: #eaf4fc;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        form {
+            margin: 20px 0;
+        }
+
+        input[type="file"] {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button {
+            margin-top: 12px;
+            padding: 10px 22px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .table-container {
+            margin-top: 20px;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f5f7fa;
+            position: sticky;
+            top: 0;
+        }
+
+        tr.fade-row {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ransomware Detection</h2>
+
+        <div id="status-box">Status: Waiting for analysis...</div>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <br>
+            <button type="submit">Analyze</button>
+        </form>
+
+        {% if features %}
+            <h3>Extracted Features</h3>
+            <div class="table-container">
+                <table id="feature-table" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feature-body">
+                    </tbody>
+                </table>
+            </div>
+            <script>
+                const features = {{ features | tojson }};
+                const result = `{{ result | lower }}`; // make lowercase for matching
+
+                const keys = Object.keys(features);
+                const values = Object.values(features);
+
+                const featureBody = document.getElementById('feature-body');
+                const featureTable = document.getElementById('feature-table');
+                const statusBox = document.getElementById('status-box');
+
+                featureTable.style.display = 'table';
+                statusBox.innerText = 'Status: Extracting Features...';
+
+                let i = 0;
+                function showNextFeature() {
+                    if (i < keys.length) {
+                        const row = document.createElement('tr');
+                        row.className = 'fade-row';
+
+                        const keyCell = document.createElement('td');
+                        const valueCell = document.createElement('td');
+
+                        keyCell.textContent = keys[i];
+                        valueCell.textContent = values[i];
+
+                        row.appendChild(keyCell);
+                        row.appendChild(valueCell);
+                        featureBody.appendChild(row);
+
+                        i++;
+                        setTimeout(showNextFeature, 100);
+                    } else {
+                        statusBox.innerText = 'Status: Running Model...';
+                        statusBox.style.backgroundColor = '#fff3cd';
+                        statusBox.style.borderLeftColor = '#f1c40f';
+
+                        setTimeout(() => {
+                            // Adjust color based on result text
+                            let bgColor = '#eaf4fc';
+                            let borderColor = '#3498db';
+
+                            if (result.includes('ransomware')) {
+                                bgColor = '#fdecea';
+                                borderColor = '#e74c3c'; // red
+                            } else if (result.includes('benign')) {
+                                bgColor = '#e2fbe2';
+                                borderColor = '#2ecc71'; // green
+                            }
+
+                            statusBox.innerHTML = 'Prediction: <strong>{{ result }}</strong>';
+                            statusBox.style.backgroundColor = bgColor;
+                            statusBox.style.borderLeftColor = borderColor;
+                        }, 1000);
+                    }
+                }
+
+                setTimeout(showNextFeature, 500);
+            </script>
+        {% endif %}
+    </div>
+</body>
+</html>
