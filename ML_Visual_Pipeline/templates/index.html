@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <<!DOCTYPE html>
+<html>
+<head>
     <title>Ransomware Detection</title>
     <style>
         body {
@@ -74,12 +77,14 @@
             overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 6px;
+            position: relative;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             min-width: 600px;
+            transition: all 0.5s ease;
         }
 
         th, td {
@@ -107,6 +112,163 @@
             color: #e74c3c;
             margin-top: 10px;
         }
+
+        /* AI Model Animation Styles */
+        .ai-model-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            overflow: hidden;
+        }
+
+        .ai-model-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+            min-width: 300px;
+        }
+
+        .model-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .neural-network {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            height: 120px;
+        }
+
+        .layer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .neuron {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            opacity: 0.6;
+            animation: neuronPulse 2s infinite;
+        }
+
+        .neuron.active {
+            opacity: 1;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes neuronPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
+        }
+
+        .connection {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            margin: 0 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .connection::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+            animation: dataFlow 1.5s infinite;
+        }
+
+        @keyframes dataFlow {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .processing-text {
+            margin-top: 20px;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            border-radius: 2px;
+            width: 0%;
+            animation: progressFill 3s ease-in-out;
+        }
+
+        @keyframes progressFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        .data-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: floatParticle 4s infinite linear;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(50px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -115,90 +277,177 @@
 
         <div id="status-box">Status: Waiting for analysis...</div>
 
-        {% if error %}
-            <p class="error">{{ error }}</p>
-        {% endif %}
-
         <form method="POST" enctype="multipart/form-data">
             <input type="file" name="file" required>
             <br>
             <button type="submit">Analyze</button>
         </form>
 
-        {% if features %}
-            <h3>Extracted Features</h3>
-            <div class="table-container">
-                <table id="feature-table" style="display:none;">
-                    <thead>
-                        <tr>
-                            <th>Feature</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody id="feature-body">
-                    </tbody>
-                </table>
+        <h3 id="features-title" style="display: none;">Extracted Features</h3>
+        <div class="table-container" id="table-container">
+            <table id="feature-table" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody id="feature-body">
+                </tbody>
+            </table>
+            
+            <!-- AI Model Animation Container -->
+            <div class="ai-model-container" id="ai-model">
+                <div class="data-particles" id="particles"></div>
+                <div class="ai-model-box">
+                    <div class="model-title">🤖 AI Model Processing</div>
+                    <div class="neural-network">
+                        <div class="layer">
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                        </div>
+                        <div class="connection"></div>
+                        <div class="layer">
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                        </div>
+                        <div class="connection"></div>
+                        <div class="layer">
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                        </div>
+                        <div class="connection"></div>
+                        <div class="layer">
+                            <div class="neuron"></div>
+                        </div>
+                    </div>
+                    <div class="processing-text">Analyzing patterns and extracting insights...</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
             </div>
-            <script>
-                const features = {{ features | tojson }};
-                const result = `{{ result | lower }}`; // make lowercase for matching
+        </div>
 
-                const keys = Object.keys(features);
-                const values = Object.values(features);
+        <script>
+            // Sample features for demonstration
+            const features = {{ features | tojson }};
+            const result = `{{ result | lower }}`; // make lowercase for matching
 
-                const featureBody = document.getElementById('feature-body');
-                const featureTable = document.getElementById('feature-table');
-                const statusBox = document.getElementById('status-box');
+            const keys = Object.keys(features);
+            const values = Object.values(features);
 
-                featureTable.style.display = 'table';
-                statusBox.innerText = 'Status: Extracting Features...';
+            const featureBody = document.getElementById('feature-body');
+            const featureTable = document.getElementById('feature-table');
+            const statusBox = document.getElementById('status-box');
+            const aiModel = document.getElementById('ai-model');
+            const featuresTitle = document.getElementById('features-title');
+            const particles = document.getElementById('particles');
 
-                let i = 0;
-                function showNextFeature() {
-                    if (i < keys.length) {
-                        const row = document.createElement('tr');
-                        row.className = 'fade-row';
+            // Show features title and table
+            featuresTitle.style.display = 'block';
+            featureTable.style.display = 'table';
+            statusBox.innerText = 'Status: Extracting Features...';
 
-                        const keyCell = document.createElement('td');
-                        const valueCell = document.createElement('td');
+            let i = 0;
+            function showNextFeature() {
+                if (i < keys.length) {
+                    const row = document.createElement('tr');
+                    row.className = 'fade-row';
 
-                        keyCell.textContent = keys[i];
-                        valueCell.textContent = values[i];
+                    const keyCell = document.createElement('td');
+                    const valueCell = document.createElement('td');
 
-                        row.appendChild(keyCell);
-                        row.appendChild(valueCell);
-                        featureBody.appendChild(row);
+                    keyCell.textContent = keys[i];
+                    valueCell.textContent = values[i];
 
-                        i++;
-                        setTimeout(showNextFeature, 100);
-                    } else {
-                        statusBox.innerText = 'Status: Running Model...';
-                        statusBox.style.backgroundColor = '#fff3cd';
-                        statusBox.style.borderLeftColor = '#f1c40f';
+                    row.appendChild(keyCell);
+                    row.appendChild(valueCell);
+                    featureBody.appendChild(row);
 
-                        setTimeout(() => {
-                            // Adjust color based on result text
-                            let bgColor = '#eaf4fc';
-                            let borderColor = '#3498db';
+                    i++;
+                    setTimeout(showNextFeature, 100);
+                } else {
+                    statusBox.innerText = 'Status: Running Model...';
+                    statusBox.style.backgroundColor = '#fff3cd';
+                    statusBox.style.borderLeftColor = '#f1c40f';
 
-                            if (result.includes('ransomware')) {
-                                bgColor = '#fdecea';
-                                borderColor = '#e74c3c'; // red
-                            } else if (result.includes('benign')) {
-                                bgColor = '#e2fbe2';
-                                borderColor = '#2ecc71'; // green
-                            }
-
-                            statusBox.innerHTML = 'Prediction: <strong>{{ result }}</strong>';
-                            statusBox.style.backgroundColor = bgColor;
-                            statusBox.style.borderLeftColor = borderColor;
-                        }, 1000);
-                    }
+                    // Start AI model animation
+                    setTimeout(() => {
+                        startAIModelAnimation();
+                    }, 500);
                 }
+            }
 
-                setTimeout(showNextFeature, 500);
-            </script>
-        {% endif %}
+            function createParticles() {
+                for (let i = 0; i < 15; i++) {
+                    setTimeout(() => {
+                        const particle = document.createElement('div');
+                        particle.className = 'particle';
+                        particle.style.left = Math.random() * 100 + '%';
+                        particle.style.animationDelay = Math.random() * 2 + 's';
+                        particles.appendChild(particle);
+
+                        // Remove particle after animation
+                        setTimeout(() => {
+                            if (particle.parentNode) {
+                                particle.parentNode.removeChild(particle);
+                            }
+                        }, 4000);
+                    }, i * 200);
+                }
+            }
+
+            function startAIModelAnimation() {
+                // Show AI model overlay
+                aiModel.style.display = 'flex';
+                
+                // Create floating particles
+                createParticles();
+                
+                // Animate neurons randomly
+                const neurons = document.querySelectorAll('.neuron');
+                const activateNeurons = () => {
+                    neurons.forEach(neuron => neuron.classList.remove('active'));
+                    const randomNeurons = [];
+                    for (let i = 0; i < Math.random() * 3 + 2; i++) {
+                        randomNeurons.push(neurons[Math.floor(Math.random() * neurons.length)]);
+                    }
+                    randomNeurons.forEach(neuron => neuron.classList.add('active'));
+                };
+
+                const neuronInterval = setInterval(activateNeurons, 600);
+                activateNeurons();
+
+                // Hide AI model and show result after animation
+                setTimeout(() => {
+                    clearInterval(neuronInterval);
+                    aiModel.style.display = 'none';
+                    
+                    // Show final result
+                    let bgColor = '#eaf4fc';
+                    let borderColor = '#3498db';
+
+                    if (result.toLowerCase().includes('ransomware')) {
+                        bgColor = '#fdecea';
+                        borderColor = '#e74c3c'; // red
+                    } else if (result.toLowerCase().includes('benign')) {
+                        bgColor = '#e2fbe2';
+                        borderColor = '#2ecc71'; // green
+                    }
+
+                    statusBox.innerHTML = 'Prediction: <strong>' + result + '</strong>';
+                    statusBox.style.backgroundColor = bgColor;
+                    statusBox.style.borderLeftColor = borderColor;
+                }, 4000);
+            }
+
+            // Start the demo
+            setTimeout(showNextFeature, 500);
+        </script>
     </div>
 </body>
 </html>
