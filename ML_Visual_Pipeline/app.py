@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import os
 import pandas as pd
 import joblib
@@ -100,11 +100,11 @@ def extract_features(file_path):
 def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files:
-            return render_template('index.html', error="No file part.")
+            return render_template('index.html', error="No file part.", features=[])
 
         file = request.files['file']
         if file.filename == '':
-            return render_template('index.html', error="No selected file.")
+            return render_template('index.html', error="No selected file.", features=[])
 
         if file and allowed_file(file.filename):
             filename = f"{uuid.uuid4().hex}_{file.filename}"
@@ -126,9 +126,9 @@ def upload_file():
             os.remove(filepath)  # Optional cleanup
             return render_template('index.html', result=label, features=features)
 
-        return render_template('index.html', error="Invalid file type.")
+        return render_template('index.html', error="Invalid file type.", features=[])
     
-    return render_template('index.html')
+    return render_template('index.html', features=[])
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)

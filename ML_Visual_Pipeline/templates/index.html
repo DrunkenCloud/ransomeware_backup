@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <<!DOCTYPE html>
-<html>
-<head>
     <title>Ransomware Detection</title>
     <style>
         body {
@@ -347,106 +344,112 @@
             const featuresTitle = document.getElementById('features-title');
             const particles = document.getElementById('particles');
 
-            // Show features title and table
-            featuresTitle.style.display = 'block';
-            featureTable.style.display = 'table';
-            statusBox.innerText = 'Status: Extracting Features...';
+            // Only show features and run animation if there are features to display
+            if (keys.length > 0) {
+                featuresTitle.style.display = 'block';
+                featureTable.style.display = 'table';
+                statusBox.innerText = 'Status: Extracting Features...';
 
-            let i = 0;
-            function showNextFeature() {
-                if (i < keys.length) {
-                    const row = document.createElement('tr');
-                    row.className = 'fade-row';
+                let i = 0;
+                function showNextFeature() {
+                    if (i < keys.length) {
+                        const row = document.createElement('tr');
+                        row.className = 'fade-row';
 
-                    const keyCell = document.createElement('td');
-                    const valueCell = document.createElement('td');
+                        const keyCell = document.createElement('td');
+                        const valueCell = document.createElement('td');
 
-                    keyCell.textContent = keys[i];
-                    valueCell.textContent = values[i];
+                        keyCell.textContent = keys[i];
+                        valueCell.textContent = values[i];
 
-                    row.appendChild(keyCell);
-                    row.appendChild(valueCell);
-                    featureBody.appendChild(row);
+                        row.appendChild(keyCell);
+                        row.appendChild(valueCell);
+                        featureBody.appendChild(row);
 
-                    i++;
-                    setTimeout(showNextFeature, 100);
-                } else {
-                    statusBox.innerText = 'Status: Running Model...';
-                    statusBox.style.backgroundColor = '#fff3cd';
-                    statusBox.style.borderLeftColor = '#f1c40f';
+                        i++;
+                        setTimeout(showNextFeature, 100);
+                    } else {
+                        statusBox.innerText = 'Status: Running Model...';
+                        statusBox.style.backgroundColor = '#fff3cd';
+                        statusBox.style.borderLeftColor = '#f1c40f';
 
-                    // Start AI model animation
-                    setTimeout(() => {
-                        startAIModelAnimation();
-                    }, 500);
-                }
-            }
-
-            function createParticles() {
-                for (let i = 0; i < 15; i++) {
-                    setTimeout(() => {
-                        const particle = document.createElement('div');
-                        particle.className = 'particle';
-                        particle.style.left = Math.random() * 100 + '%';
-                        particle.style.animationDelay = Math.random() * 2 + 's';
-                        particles.appendChild(particle);
-
-                        // Remove particle after animation
+                        // Start AI model animation
                         setTimeout(() => {
-                            if (particle.parentNode) {
-                                particle.parentNode.removeChild(particle);
-                            }
-                        }, 4000);
-                    }, i * 200);
+                            startAIModelAnimation();
+                        }, 500);
+                    }
                 }
-            }
 
-            function startAIModelAnimation() {
-                // Show AI model overlay
-                aiModel.style.display = 'flex';
-                
-                // Create floating particles
-                createParticles();
-                
-                // Animate neurons randomly
-                const neurons = document.querySelectorAll('.neuron');
-                const activateNeurons = () => {
-                    neurons.forEach(neuron => neuron.classList.remove('active'));
-                    const randomNeurons = [];
-                    for (let i = 0; i < Math.random() * 3 + 2; i++) {
-                        randomNeurons.push(neurons[Math.floor(Math.random() * neurons.length)]);
+                function createParticles() {
+                    for (let i = 0; i < 15; i++) {
+                        setTimeout(() => {
+                            const particle = document.createElement('div');
+                            particle.className = 'particle';
+                            particle.style.left = Math.random() * 100 + '%';
+                            particle.style.animationDelay = Math.random() * 2 + 's';
+                            particles.appendChild(particle);
+
+                            // Remove particle after animation
+                            setTimeout(() => {
+                                if (particle.parentNode) {
+                                    particle.parentNode.removeChild(particle);
+                                }
+                            }, 4000);
+                        }, i * 200);
                     }
-                    randomNeurons.forEach(neuron => neuron.classList.add('active'));
-                };
+                }
 
-                const neuronInterval = setInterval(activateNeurons, 600);
-                activateNeurons();
-
-                // Hide AI model and show result after animation
-                setTimeout(() => {
-                    clearInterval(neuronInterval);
-                    aiModel.style.display = 'none';
+                function startAIModelAnimation() {
+                    // Show AI model overlay
+                    aiModel.style.display = 'flex';
                     
-                    // Show final result
-                    let bgColor = '#eaf4fc';
-                    let borderColor = '#3498db';
+                    // Create floating particles
+                    createParticles();
+                    
+                    // Animate neurons randomly
+                    const neurons = document.querySelectorAll('.neuron');
+                    const activateNeurons = () => {
+                        neurons.forEach(neuron => neuron.classList.remove('active'));
+                        const randomNeurons = [];
+                        for (let i = 0; i < Math.random() * 3 + 2; i++) {
+                            randomNeurons.push(neurons[Math.floor(Math.random() * neurons.length)]);
+                        }
+                        randomNeurons.forEach(neuron => neuron.classList.add('active'));
+                    };
 
-                    if (result.toLowerCase().includes('ransomware')) {
-                        bgColor = '#fdecea';
-                        borderColor = '#e74c3c'; // red
-                    } else if (result.toLowerCase().includes('benign')) {
-                        bgColor = '#e2fbe2';
-                        borderColor = '#2ecc71'; // green
-                    }
+                    const neuronInterval = setInterval(activateNeurons, 600);
+                    activateNeurons();
 
-                    statusBox.innerHTML = 'Prediction: <strong>' + result + '</strong>';
-                    statusBox.style.backgroundColor = bgColor;
-                    statusBox.style.borderLeftColor = borderColor;
-                }, 4000);
+                    // Hide AI model and show result after animation
+                    setTimeout(() => {
+                        clearInterval(neuronInterval);
+                        aiModel.style.display = 'none';
+                        
+                        // Show final result
+                        let bgColor = '#eaf4fc';
+                        let borderColor = '#3498db';
+
+                        if (result.toLowerCase().includes('ransomware')) {
+                            bgColor = '#fdecea';
+                            borderColor = '#e74c3c'; // red
+                        } else if (result.toLowerCase().includes('benign')) {
+                            bgColor = '#e2fbe2';
+                            borderColor = '#2ecc71'; // green
+                        }
+
+                        statusBox.innerHTML = 'Prediction: <strong>' + result + '</strong>';
+                        statusBox.style.backgroundColor = bgColor;
+                        statusBox.style.borderLeftColor = borderColor;
+                    }, 4000);
+                }
+
+                // Start the demo only if features exist
+                setTimeout(showNextFeature, 500);
+            } else {
+                // Hide features table and title if no features
+                featuresTitle.style.display = 'none';
+                featureTable.style.display = 'none';
             }
-
-            // Start the demo
-            setTimeout(showNextFeature, 500);
         </script>
     </div>
 </body>
