@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C2 Channel Decoder Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%);
+            color: #00ff41;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+            border-radius: 10px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff41;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.8;
+        }
+
+        .objective {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid #ffa500;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ffa500;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .logs-section {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .log-count {
+            color: #00ff41;
+            font-weight: bold;
+        }
+
+        .logs-list {
+            max-height: 600px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #00ff41 #333;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .log-entry:hover {
+            background: rgba(0, 255, 65, 0.1);
+            border-color: #00ff41;
+            transform: translateX(5px);
+        }
+
+        .log-entry.selected {
+            background: rgba(0, 255, 65, 0.2);
+            border-color: #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+
+        .log-entry.flagged {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: #ff0000;
+        }
+
+        .log-timestamp {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .log-summary {
+            margin-top: 5px;
+            font-size: 0.95em;
+        }
+
+        .preview-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .preview-header {
+            color: #00ff41;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .log-details {
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .log-field {
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .field-label {
+            color: #ffa500;
+            font-weight: bold;
+            min-width: 100px;
+            margin-right: 10px;
+        }
+
+        .field-value {
+            color: #00ff41;
+            word-break: break-all;
+        }
+
+        .suspicious-indicator {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            border-radius: 3px;
+            padding: 2px 6px;
+            margin-left: 10px;
+            font-size: 0.8em;
+            color: #ff6666;
+        }
+
+        .controls-section {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .control-group {
+            background: rgba(0, 255, 65, 0.05);
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .control-group h3 {
+            color: #00ff41;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00ff41, #00cc33);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #00cc33, #00ff41);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(45deg, #cc0000, #ff4444);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            color: #ffa500;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: #00ff41;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #00ff41;
+            box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .results.success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+        }
+
+        .results.error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff6666;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #00ff41;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 C2 Channel Decoder Lab</h1>
+            <p>Analyze network traffic to identify Command & Control communication patterns</p>
+        </div>
+
+        <div class="objective">
+            <strong>Mission:</strong> Analyze the network logs below to identify suspicious C2 activity. Look for repeated connections, unusual data transfers, connections to blacklisted IPs, and abnormal protocol usage. Flag suspicious entries and submit your findings!
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalLogs">0</div>
+                <div class="stat-label">Total Logs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="flaggedCount">0</div>
+                <div class="stat-label">Flagged</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="suspiciousCount">0</div>
+                <div class="stat-label">Suspicious IPs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="accuracyScore">--</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="logs-section">
+                <div class="logs-header">
+                    <h2>📋 Network Traffic Logs</h2>
+                    <div class="log-count">Loading logs...</div>
+                </div>
+                <div class="logs-list" id="logsList">
+                    <!-- Logs will be populated here -->
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <div class="preview-header">🔍 Log Details</div>
+                <div class="log-details" id="logDetails">
+                    <p style="text-align: center; opacity: 0.6;">Select a log entry to view details</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <h3>🔄 Lab Controls</h3>
+                    <button class="btn" onclick="generateNewLogs()">Generate New Logs</button>
+                    <button class="btn" onclick="toggleFlagged()">Toggle Flagged View</button>
+                    <button class="btn btn-danger" onclick="resetFlags()">Reset All Flags</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>📝 Submit Findings</h3>
+                    <div class="form-group">
+                        <label class="form-label">C2 Server IP:</label>
+                        <input type="text" class="form-input" id="c2IP" placeholder="e.g., 185.234.72.45">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data Exfiltration Size (KB):</label>
+                        <input type="number" class="form-input" id="dataSize" placeholder="e.g., 2048">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Beacon Interval (seconds):</label>
+                        <input type="number" class="form-input" id="beaconInterval" placeholder="e.g., 30">
+                    </div>
+                    <button class="btn" onclick="submitFindings()">Submit Analysis</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <!-- Results will appear here -->
+        </div>
+    </div>
+
+    <script>
+        let networkLogs = [];
+        let selectedLogIndex = -1;
+        let flaggedLogs = new Set();
+        let showOnlyFlagged = false;
+        let maliciousConfig = {};
+
+        // Blacklisted IPs (known malicious)
+        const blacklistedIPs = [
+            '185.234.72.45', '203.142.67.89', '91.205.188.23', '176.123.45.67',
+            '194.87.123.45', '45.231.87.123', '167.99.234.111', '138.68.145.78'
+        ];
+
+        // Common legitimate services and their typical ports
+        const legitimateServices = [
+            { service: 'HTTP', port: 80, ips: ['172.217.164.110', '142.250.191.14', '216.58.194.174'] },
+            { service: 'HTTPS', port: 443, ips: ['172.217.164.110', '151.101.193.140', '104.16.249.249'] },
+            { service: 'DNS', port: 53, ips: ['8.8.8.8', '1.1.1.1', '208.67.222.222'] },
+            { service: 'SMTP', port: 25, ips: ['74.125.224.108', '209.85.208.26'] },
+            { service: 'FTP', port: 21, ips: ['192.168.1.100', '10.0.0.50'] },
+            { service: 'SSH', port: 22, ips: ['192.168.1.10', '10.0.0.25'] }
+        ];
+
+        function generateTimestamp() {
+            const now = new Date();
+            const start = new Date(now.getTime() - (Math.random() * 24 * 60 * 60 * 1000)); // Last 24 hours
+            return start.toISOString();
+        }
+
+        function generateRandomIP() {
+            return `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+        }
+
+        function generateRandomPort() {
+            return Math.floor(Math.random() * 65535) + 1;
+        }
+
+        function generateRandomSize() {
+            return Math.floor(Math.random() * 10000) + 100;
+        }
+
+        function generateLegitimateLog() {
+            const service = legitimateServices[Math.floor(Math.random() * legitimateServices.length)];
+            const sourceIP = `192.168.1.${Math.floor(Math.random() * 254) + 1}`;
+            const destIP = service.ips[Math.floor(Math.random() * service.ips.length)];
+            
+            return {
+                timestamp: generateTimestamp(),
+                sourceIP: sourceIP,
+                destIP: destIP,
+                sourcePort: Math.floor(Math.random() * 60000) + 1024,
+                destPort: service.port,
+                protocol: Math.random() > 0.5 ? 'TCP' : 'UDP',
+                dataSize: generateRandomSize(),
+                service: service.service,
+                payload: generateRandomPayload(false),
+                isMalicious: false,
+                maliciousType: null
+            };
+        }
+
+        function generateRandomPayload(isMalicious = false) {
+            if (isMalicious) {
+                const maliciousPayloads = [
+                    'GET /update.php?id=sys_' + Math.random().toString(36).substr(2, 8),
+                    'POST /api/beacon HTTP/1.1\\r\\nHost: update-server.com',
+                    btoa('cmd_exec_' + Math.random().toString(36).substr(2, 6)),
+                    'PING ' + Math.random().toString(36).substr(2, 10),
+                    '/bin/sh -c "' + Math.random().toString(36).substr(2, 15) + '"'
+                ];
+                return maliciousPayloads[Math.floor(Math.random() * maliciousPayloads.length)];
+            } else {
+                const legitPayloads = [
+                    'GET / HTTP/1.1\\r\\nHost: google.com',
+                    'POST /api/login HTTP/1.1',
+                    'SELECT * FROM users WHERE id=1',
+                    'UPDATE user_preferences SET theme="dark"',
+                    'GET /favicon.ico HTTP/1.1'
+                ];
+                return legitPayloads[Math.floor(Math.random() * legitPayloads.length)];
+            }
+        }
+
+        function generateMaliciousLog(type) {
+            const sourceIP = `192.168.1.${Math.floor(Math.random() * 254) + 1}`;
+            let log = {
+                timestamp: generateTimestamp(),
+                sourceIP: sourceIP,
+                isMalicious: true,
+                maliciousType: type
+            };
+
+            switch (type) {
+                case 'c2_beacon':
+                    log.destIP = maliciousConfig.c2Server;
+                    log.sourcePort = Math.floor(Math.random() * 60000) + 1024;
+                    log.destPort = 8080;
+                    log.protocol = 'TCP';
+                    log.dataSize = Math.floor(Math.random() * 200) + 50; // Small beacon
+                    log.service = 'HTTP';
+                    log.payload = generateRandomPayload(true);
+                    break;
+                
+                case 'data_exfiltration':
+                    log.destIP = maliciousConfig.c2Server;
+                    log.sourcePort = Math.floor(Math.random() * 60000) + 1024;
+                    log.destPort = 443;
+                    log.protocol = 'TCP';
+                    log.dataSize = maliciousConfig.exfiltrationSize + Math.floor(Math.random() * 500);
+                    log.service = 'HTTPS';
+                    log.payload = btoa('exfil_data_' + Math.random().toString(36).substr(2, 20));
+                    break;
+                
+                case 'blacklisted_ip':
+                    const blacklistedIP = blacklistedIPs[Math.floor(Math.random() * blacklistedIPs.length)];
+                    log.destIP = blacklistedIP;
+                    log.sourcePort = Math.floor(Math.random() * 60000) + 1024;
+                    log.destPort = generateRandomPort();
+                    log.protocol = 'TCP';
+                    log.dataSize = generateRandomSize();
+                    log.service = 'UNKNOWN';
+                    log.payload = generateRandomPayload(true);
+                    break;
+                
+                case 'unusual_protocol':
+                    log.destIP = generateRandomIP();
+                    log.sourcePort = Math.floor(Math.random() * 60000) + 1024;
+                    log.destPort = 1337; // Suspicious port
+                    log.protocol = 'TCP';
+                    log.dataSize = generateRandomSize();
+                    log.service = 'CUSTOM';
+                    log.payload = generateRandomPayload(true);
+                    break;
+            }
+
+            return log;
+        }
+
+        function generateNewLogs() {
+            networkLogs = [];
+            flaggedLogs.clear();
+            
+            // Configure malicious activity
+            maliciousConfig = {
+                c2Server: blacklistedIPs[Math.floor(Math.random() * blacklistedIPs.length)],
+                beaconInterval: [15, 30, 45, 60][Math.floor(Math.random() * 4)],
+                exfiltrationSize: [1024, 2048, 4096, 8192][Math.floor(Math.random() * 4)]
+            };
+
+            // Generate 35-40 legitimate logs
+            const legitimateCount = Math.floor(Math.random() * 6) + 35;
+            for (let i = 0; i < legitimateCount; i++) {
+                networkLogs.push(generateLegitimateLog());
+            }
+
+            // Generate 3-5 C2 beacon logs (repeated connections)
+            const beaconCount = Math.floor(Math.random() * 3) + 3;
+            for (let i = 0; i < beaconCount; i++) {
+                networkLogs.push(generateMaliciousLog('c2_beacon'));
+            }
+
+            // Generate 2-3 data exfiltration logs
+            const exfilCount = Math.floor(Math.random() * 2) + 2;
+            for (let i = 0; i < exfilCount; i++) {
+                networkLogs.push(generateMaliciousLog('data_exfiltration'));
+            }
+
+            // Generate 1-2 blacklisted IP connections
+            const blacklistCount = Math.floor(Math.random() * 2) + 1;
+            for (let i = 0; i < blacklistCount; i++) {
+                networkLogs.push(generateMaliciousLog('blacklisted_ip'));
+            }
+
+            // Generate 1-2 unusual protocol logs
+            const unusualCount = Math.floor(Math.random() * 2) + 1;
+            for (let i = 0; i < unusualCount; i++) {
+                networkLogs.push(generateMaliciousLog('unusual_protocol'));
+            }
+
+            // Shuffle the logs to make detection more challenging
+            for (let i = networkLogs.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [networkLogs[i], networkLogs[j]] = [networkLogs[j], networkLogs[i]];
+            }
+
+            console.log(networkLogs.length);
+
+            displayLogs();
+            updateStats();
+            clearResults();
+        }
+
+        function displayLogs() {
+            const logsList = document.getElementById('logsList');
+            const filteredLogs = showOnlyFlagged ? 
+                networkLogs.filter((_, index) => flaggedLogs.has(index)) : 
+                networkLogs;
+
+            logsList.innerHTML = '';
+            
+            filteredLogs.forEach((log, displayIndex) => {
+                const actualIndex = showOnlyFlagged ? 
+                    networkLogs.findIndex((l, i) => flaggedLogs.has(i) && networkLogs.filter((_, idx) => flaggedLogs.has(idx)).indexOf(l) === displayIndex) :
+                    displayIndex;
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${flaggedLogs.has(actualIndex) ? 'flagged' : ''}`;
+                logEntry.onclick = () => selectLog(actualIndex);
+                
+                const timestamp = new Date(log.timestamp).toLocaleString();
+                const summary = `${log.sourceIP}:${log.sourcePort} → ${log.destIP}:${log.destPort} | ${log.protocol} | ${log.dataSize}B`;
+                
+                logEntry.innerHTML = `
+                    <div class="log-timestamp">${timestamp}</div>
+                    <div class="log-summary">${summary}</div>
+                `;
+                
+                logsList.appendChild(logEntry);
+            });
+
+            document.querySelector('.log-count').textContent = `${filteredLogs.length} logs displayed`;
+        }
+
+        function selectLog(index) {
+            selectedLogIndex = index;
+            
+            // Update selection visual
+            document.querySelectorAll('.log-entry').forEach((entry, i) => {
+                entry.classList.remove('selected');
+            });
+            
+            const displayIndex = showOnlyFlagged ? 
+                [...flaggedLogs].indexOf(index) : index;
+            
+            if (displayIndex >= 0) {
+                document.querySelectorAll('.log-entry')[displayIndex].classList.add('selected');
+            }
+
+            displayLogDetails(networkLogs[index]);
+        }
+
+        function displayLogDetails(log) {
+            const detailsDiv = document.getElementById('logDetails');
+            const timestamp = new Date(log.timestamp).toLocaleString();
+            
+            let suspiciousIndicators = [];
+            if (blacklistedIPs.includes(log.destIP)) {
+                suspiciousIndicators.push('Blacklisted IP');
+            }
+            if (log.destPort === 8080 && log.dataSize < 300) {
+                suspiciousIndicators.push('Potential Beacon');
+            }
+            if (log.dataSize > 2000) {
+                suspiciousIndicators.push('Large Data Transfer');
+            }
+            if (log.destPort === 1337) {
+                suspiciousIndicators.push('Suspicious Port');
+            }
+
+            detailsDiv.innerHTML = `
+                <div class="log-field">
+                    <span class="field-label">Timestamp:</span>
+                    <span class="field-value">${timestamp}</span>
+                </div>
+                <div class="log-field">
+                    <span class="field-label">Source:</span>
+                    <span class="field-value">${log.sourceIP}:${log.sourcePort}</span>
+                </div>
+                <div class="log-field">
+                    <span class="field-label">Destination:</span>
+                    <span class="field-value">${log.destIP}:${log.destPort}</span>
+                    ${blacklistedIPs.includes(log.destIP) ? '<span class="suspicious-indicator">BLACKLISTED</span>' : ''}
+                </div>
+                <div class="log-field">
+                    <span class="field-label">Protocol:</span>
+                    <span class="field-value">${log.protocol}</span>
+                </div>
+                <div class="log-field">
+                    <span class="field-label">Service:</span>
+                    <span class="field-value">${log.service}</span>
+                </div>
+                <div class="log-field">
+                    <span class="field-label">Data Size:</span>
+                    <span class="field-value">${log.dataSize} bytes</span>
+                    ${log.dataSize > 2000 ? '<span class="suspicious-indicator">LARGE</span>' : ''}
+                    ${log.dataSize < 300 && log.destPort === 8080 ? '<span class="suspicious-indicator">SMALL</span>' : ''}
+                </div>
+                <div class="log-field">
+                    <span class="field-label">Payload:</span>
+                    <span class="field-value">${log.payload}</span>
+                </div>
+                ${suspiciousIndicators.length > 0 ? `
+                <div class="log-field">
+                    <span class="field-label">⚠️ Alerts:</span>
+                    <span class="field-value">${suspiciousIndicators.join(', ')}</span>
+                </div>` : ''}
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="btn" onclick="toggleFlag(${selectedLogIndex})" style="width: auto; padding: 8px 16px;">
+                        ${flaggedLogs.has(selectedLogIndex) ? 'Remove Flag' : 'Flag as Suspicious'}
+                    </button>
+                </div>
+            `;
+        }
+
+        function toggleFlag(index) {
+            if (flaggedLogs.has(index)) {
+                flaggedLogs.delete(index);
+            } else {
+                flaggedLogs.add(index);
+            }
+            
+            displayLogs();
+            if (selectedLogIndex >= 0) {
+                selectLog(selectedLogIndex);
+            }
+            updateStats();
+        }
+
+        function toggleFlagged() {
+            showOnlyFlagged = !showOnlyFlagged;
+            displayLogs();
+            
+            const button = event.target;
+            button.textContent = showOnlyFlagged ? 'Show All Logs' : 'Toggle Flagged View';
+        }
+
+        function resetFlags() {
+            flaggedLogs.clear();
+            displayLogs();
+            updateStats();
+            clearResults();
+        }
+
+        function updateStats() {
+            document.getElementById('totalLogs').textContent = networkLogs.length;
+            document.getElementById('flaggedCount').textContent = flaggedLogs.size;
+            
+            const suspiciousIPs = new Set();
+            networkLogs.forEach(log => {
+                if (blacklistedIPs.includes(log.destIP)) {
+                    suspiciousIPs.add(log.destIP);
+                }
+            });
+            document.getElementById('suspiciousCount').textContent = suspiciousIPs.size;
+        }
+
+        function submitFindings() {
+            const c2IP = document.getElementById('c2IP').value.trim();
+            const dataSize = parseInt(document.getElementById('dataSize').value) || 0;
+            const beaconInterval = parseInt(document.getElementById('beaconInterval').value) || 0;
+
+            let score = 0;
+            let feedback = [];
+            
+            // Check C2 IP
+            if (c2IP === maliciousConfig.c2Server) {
+                score += 40;
+                feedback.push('✅ Correct C2 server IP identified!');
+            } else {
+                feedback.push(`❌ Incorrect C2 IP. Expected: ${maliciousConfig.c2Server}`);
+            }
+
+            // Check data size (allow some tolerance)
+            if (Math.abs(dataSize - maliciousConfig.exfiltrationSize) <= 500) {
+                score += 30;
+                feedback.push('✅ Data exfiltration size is correct!');
+            } else {
+                feedback.push(`❌ Incorrect data size. Expected around: ${maliciousConfig.exfiltrationSize} KB`);
+            }
+
+            // Check beacon interval
+            if (beaconInterval === maliciousConfig.beaconInterval) {
+                score += 20;
+                feedback.push('✅ Beacon interval is correct!');
+            } else {
+                feedback.push(`❌ Incorrect beacon interval. Expected: ${maliciousConfig.beaconInterval} seconds`);
+            }
+
+            // Check flagged logs accuracy
+            const maliciousLogIndices = [];
+            networkLogs.forEach((log, index) => {
+                if (log.isMalicious) {
+                    maliciousLogIndices.push(index);
+                }
+            });
+
+            const correctFlags = [...flaggedLogs].filter(index => maliciousLogIndices.includes(index)).length;
+            const incorrectFlags = [...flaggedLogs].filter(index => !maliciousLogIndices.includes(index)).length;
+            const missedFlags = maliciousLogIndices.filter(index => !flaggedLogs.has(index)).length;
+
+            const flagAccuracy = maliciousLogIndices.length > 0 ? 
+                (correctFlags / maliciousLogIndices.length) * 100 : 0;
+
+            if (flagAccuracy >= 80) {
+                score += 10;
+                feedback.push('✅ Excellent flag accuracy!');
+            } else if (flagAccuracy >= 60) {
+                score += 5;
+                feedback.push('⚠️ Good flag accuracy, but some malicious logs missed.');
+            } else {
+                feedback.push('❌ Poor flag accuracy. Review the logs more carefully.');
+            }
+
+            // Display results
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.className = score >= 70 ? 'results success' : 'results error';
+            
+            document.getElementById('accuracyScore').textContent = score + '%';
+            
+            resultsDiv.innerHTML = `
+                <h3>Analysis Results (Score: ${score}/100)</h3>
+                <div style="margin: 15px 0;">
+                    ${feedback.map(f => `<div style="margin: 5px 0;">${f}</div>`).join('')}
+                </div>
+                <div style="margin-top: 15px; font-size: 0.9em; opacity: 0.8;">
+                    <strong>Flag Statistics:</strong><br>
+                    • Correct flags: ${correctFlags}/${maliciousLogIndices.length} malicious logs<br>
+                    • False positives: ${incorrectFlags}<br>
+                    • Missed malicious logs: ${missedFlags}
+                </div>
+                ${score >= 70 ? 
+                    '<div style="margin-top: 15px; color: #00ff00;">🎉 Great work! You successfully identified the C2 communication pattern.</div>' :
+                    '<div style="margin-top: 15px; color: #ffa500;">📚 Keep practicing to improve your network forensics skills!</div>'
+                }
+            `;
+        }
+
+        function clearResults() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('accuracyScore').textContent = '--';
+            document.getElementById('c2IP').value = '';
+            document.getElementById('dataSize').value = '';
+            document.getElementById('beaconInterval').value = '';
+        }
+
+        // Initialize the lab
+        document.addEventListener('DOMContentLoaded', function() {
+            generateNewLogs();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'f' || e.key === 'F') {
+                if (selectedLogIndex >= 0) {
+                    e.preventDefault();
+                    toggleFlag(selectedLogIndex);
+                }
+            }
+            if (e.key === 'r' || e.key === 'R') {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    generateNewLogs();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
