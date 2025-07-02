@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { generateSystemLogs, LogEntry } from '@/utils/logGenerator';
-import { Shield, AlertTriangle, Clock, Filter, RotateCcw, Eye, Target } from 'lucide-react';
+import { Shield, AlertTriangle, Clock, Filter, RotateCcw, Eye, Target, Play } from 'lucide-react';
 
 const RansomwareSimulation = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -19,14 +19,8 @@ const RansomwareSimulation = () => {
   const [feedback, setFeedback] = useState<string>('');
   const [showResults, setShowResults] = useState(false);
   const [showColoring, setShowColoring] = useState(false);
-  const [globalScore, setGlobalScore] = useState(() => {
-    const saved = localStorage.getItem('ransomware-global-score');
-    return saved ? parseInt(saved) : 0;
-  });
-  const [gamesPlayed, setGamesPlayed] = useState(() => {
-    const saved = localStorage.getItem('ransomware-games-played');
-    return saved ? parseInt(saved) : 0;
-  });
+  const [sessionScore, setSessionScore] = useState(0);
+  const [gamesPlayed, setGamesPlayed] = useState(0);
   const [missedLogs, setMissedLogs] = useState<number[]>([]);
   const [incorrectLogs, setIncorrectLogs] = useState<number[]>([]);
 
@@ -56,7 +50,20 @@ const RansomwareSimulation = () => {
     setIncorrectLogs([]);
   };
 
-  const resetGame = () => {
+  const startNextGame = () => {
+    const generatedLogs = generateSystemLogs();
+    setLogs(generatedLogs);
+    setFilteredLogs(generatedLogs);
+    setSelectedLogs(new Set());
+    setScore(0);
+    setFeedback('');
+    setShowResults(false);
+    setShowColoring(false);
+    setMissedLogs([]);
+    setIncorrectLogs([]);
+  };
+
+  const resetSession = () => {
     const generatedLogs = generateSystemLogs();
     setLogs(generatedLogs);
     setFilteredLogs(generatedLogs);
@@ -68,6 +75,8 @@ const RansomwareSimulation = () => {
     setShowColoring(false);
     setMissedLogs([]);
     setIncorrectLogs([]);
+    setSessionScore(0);
+    setGamesPlayed(0);
   };
 
   const toggleLogSelection = (index: number) => {
@@ -123,13 +132,11 @@ const RansomwareSimulation = () => {
     setShowResults(true);
     setShowColoring(true);
     
-    // Update global score
-    const newGlobalScore = globalScore + calculatedScore;
+    // Update session score
+    const newSessionScore = sessionScore + calculatedScore;
     const newGamesPlayed = gamesPlayed + 1;
-    setGlobalScore(newGlobalScore);
+    setSessionScore(newSessionScore);
     setGamesPlayed(newGamesPlayed);
-    localStorage.setItem('ransomware-global-score', newGlobalScore.toString());
-    localStorage.setItem('ransomware-games-played', newGamesPlayed.toString());
   };
 
   const getLogTypeColor = (log: LogEntry, index: number) => {
@@ -183,10 +190,10 @@ const RansomwareSimulation = () => {
               {gamesPlayed > 0 && (
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                   <div className="text-lg font-semibold text-blue-800">
-                    Global Score: {globalScore}/{gamesPlayed * 100}
+                    Session Score: {sessionScore}/{gamesPlayed * 100}
                   </div>
                   <div className="text-sm text-blue-600">
-                    Games Played: {gamesPlayed} | Average: {Math.round(globalScore / gamesPlayed)}
+                    Games Played: {gamesPlayed} | Average: {Math.round(sessionScore / gamesPlayed)}
                   </div>
                 </div>
               )}
@@ -254,12 +261,12 @@ const RansomwareSimulation = () => {
           </h1>
           <div className="flex items-center gap-4">
             <div className="text-white text-sm">
-              <div className="font-semibold">Global: {globalScore}/{gamesPlayed * 100}</div>
+              <div className="font-semibold">Session: {sessionScore}/{gamesPlayed * 100}</div>
               <div className="text-xs opacity-75">Games: {gamesPlayed}</div>
             </div>
-            <Button onClick={resetGame} variant="outline" className="bg-white/10 text-white border-white/20">
+            <Button onClick={resetSession} variant="outline" className="bg-white/10 text-white border-white/20">
               <RotateCcw className="w-4 h-4 mr-2" />
-              Reset
+              Reset Session
             </Button>
           </div>
         </div>
@@ -279,9 +286,19 @@ const RansomwareSimulation = () => {
                     </p>
                   )}
                 </div>
-                <Badge variant={score >= 70 ? "default" : "destructive"} className="ml-4">
-                  {score >= 70 ? "PASS" : "NEEDS REVIEW"}
-                </Badge>
+                <div className="flex flex-col gap-2">
+                  <Badge variant={score >= 70 ? "default" : "destructive"} className="ml-4">
+                    {score >= 70 ? "PASS" : "NEEDS REVIEW"}
+                  </Badge>
+                  <Button
+                    onClick={startNextGame}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    size="sm"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Next Game
+                  </Button>
+                </div>
               </div>
             </AlertDescription>
           </Alert>
@@ -289,7 +306,7 @@ const RansomwareSimulation = () => {
 
         <div className="grid lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
-            <Card className="bg-white/95 backdrop-blur-sm h-fit p-2">
+            <Card className="bg-white/95 backdrop-blur-sm">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center gap-2">
