@@ -404,6 +404,7 @@
         let flaggedLogs = new Set();
         let showOnlyFlagged = false;
         let maliciousConfig = {};
+        let lastBeaconTimestamp = null;
 
         // Blacklisted IPs (known malicious)
         const blacklistedIPs = [
@@ -492,6 +493,7 @@
 
             switch (type) {
                 case 'c2_beacon':
+                    log.timestamp = new Date(lastBeaconTimestamp.getTime() + maliciousConfig.beaconInterval * 1000).toISOString(),
                     log.destIP = maliciousConfig.c2Server;
                     log.sourcePort = Math.floor(Math.random() * 60000) + 1024;
                     log.destPort = 8080;
@@ -499,6 +501,7 @@
                     log.dataSize = Math.floor(Math.random() * 200) + 50; // Small beacon
                     log.service = 'HTTP';
                     log.payload = generateRandomPayload(true);
+                    lastBeaconTimestamp = log.timestamp;
                     break;
                 
                 case 'data_exfiltration':
@@ -554,7 +557,7 @@
             }
 
             // Generate 3-5 C2 beacon logs (repeated connections)
-            const beaconCount = Math.floor(Math.random() * 3) + 3;
+            const beaconCount = Math.floor(Math.random() * 3) + 4;
             for (let i = 0; i < beaconCount; i++) {
                 networkLogs.push(generateMaliciousLog('c2_beacon'));
             }
@@ -583,7 +586,7 @@
                 [networkLogs[i], networkLogs[j]] = [networkLogs[j], networkLogs[i]];
             }
 
-            console.log(networkLogs.length);
+            console.log(networkLogs);
 
             displayLogs();
             updateStats();
