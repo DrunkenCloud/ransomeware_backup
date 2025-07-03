@@ -1,0 +1,153 @@
+{
+  "nodes": [
+    {
+      "id": "1",
+      "label": "Firewall",
+      "state": "infected",
+      "x": 100,
+      "y": 300,
+      "lastInfected": 1751532619109
+    },
+    {
+      "id": "2",
+      "label": "Web Server",
+      "state": "infected",
+      "x": 300,
+      "y": 150,
+      "lastInfected": 1751532615931
+    },
+    {
+      "id": "3",
+      "label": "App Server",
+      "state": "healthy",
+      "x": 300,
+      "y": 450
+    },
+    {
+      "id": "4",
+      "label": "DB Server",
+      "state": "healthy",
+      "x": 500,
+      "y": 300
+    },
+    {
+      "id": "5",
+      "label": "Admin PC",
+      "state": "hardened",
+      "x": 700,
+      "y": 150,
+      "lastHardened": 1751532613238
+    },
+    {
+      "id": "6",
+      "label": "Dev PC",
+      "state": "healthy",
+      "x": 700,
+      "y": 450
+    }
+  ],
+  "edges": [
+    {
+      "from": "1",
+      "to": "2"
+    },
+    {
+      "from": "1",
+      "to": "3"
+    },
+    {
+      "from": "2",
+      "to": "4"
+    },
+    {
+      "from": "3",
+      "to": "4"
+    },
+    {
+      "from": "4",
+      "to": "5"
+    },
+    {
+      "from": "4",
+      "to": "6"
+    }
+  ],
+  "attackerScore": 38,
+  "defenderScore": 4,
+  "cooldowns": {
+    "deploy_virus": 1751532638236,
+    "scan": 1751532639697,
+    "shield": 1751532633238,
+    "deploy_worm": 1751532634109
+  },
+  "winner": "attacker",
+  "lastUpdated": 1751532651341,
+  "events": [
+    {
+      "message": "Shield Down",
+      "description": "Shield on Admin PC has expired.",
+      "id": "1751532651341-0.3704821121084252",
+      "timestamp": 1751532651341
+    },
+    {
+      "message": "Data Exfiltrated!",
+      "description": "Attacker scored a point from Web Server!",
+      "variant": "destructive",
+      "id": "1751532651341-0.264908642537212",
+      "timestamp": 1751532651341
+    },
+    {
+      "message": "Data Exfiltrated!",
+      "description": "Attacker scored a point from Firewall!",
+      "variant": "destructive",
+      "id": "1751532651341-0.15881052990573696",
+      "timestamp": 1751532651341
+    },
+    {
+      "message": "Shield Down",
+      "description": "Shield on Admin PC has expired.",
+      "id": "1751532649350-0.7508090039902828",
+      "timestamp": 1751532649350
+    },
+    {
+      "message": "Data Exfiltrated!",
+      "description": "Attacker scored a point from Web Server!",
+      "variant": "destructive",
+      "id": "1751532649350-0.005117825663924158",
+      "timestamp": 1751532649350
+    },
+    {
+      "message": "Data Exfiltrated!",
+      "description": "Attacker scored a point from Firewall!",
+      "variant": "destructive",
+      "id": "1751532649350-0.6706110614364269",
+      "timestamp": 1751532649350
+    },
+    {
+      "message": "Shield Down",
+      "description": "Shield on Admin PC has expired.",
+      "id": "1751532647454-0.7457994938522121",
+      "timestamp": 1751532647454
+    },
+    {
+      "message": "Data Exfiltrated!",
+      "description": "Attacker scored a point from Web Server!",
+      "variant": "destructive",
+      "id": "1751532647454-0.4737401836363204",
+      "timestamp": 1751532647454
+    },
+    {
+      "message": "Data Exfiltrated!",
+      "description": "Attacker scored a point from Firewall!",
+      "variant": "destructive",
+      "id": "1751532647454-0.36743681696127406",
+      "timestamp": 1751532647454
+    },
+    {
+      "message": "Shield Down",
+      "description": "Shield on Admin PC has expired.",
+      "id": "1751532646848-0.08701753577280646",
+      "timestamp": 1751532646848
+    }
+  ]
+}
