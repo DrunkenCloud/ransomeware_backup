@@ -104,27 +104,52 @@ const RansomwareSimulation = () => {
     let calculatedScore = 0;
     let feedbackMessage = '';
 
+    // Determine if system is actually safe or compromised
+    const systemIsActuallySafe = maliciousLogs.length === 0;
+
     if (isSafe) {
-      if (selectedLogs.size === 0) {
-        calculatedScore = 85;
-        feedbackMessage = 'Correct! No malicious activity detected. However, you should have identified some suspicious patterns to get full marks.';
+      // User classified as safe
+      if (systemIsActuallySafe) {
+        // Correct classification - system is safe
+        if (selectedLogs.size === 0) {
+          calculatedScore = 85;
+          feedbackMessage = 'Correct! No malicious activity detected. However, you should have identified some suspicious patterns to get full marks.';
+        } else {
+          calculatedScore = Math.max(50, 85 - (selectedLogs.size * 3));
+          feedbackMessage = `Correct classification but you marked ${selectedLogs.size} logs as suspicious. Focus on distinguishing between suspicious but benign activities.`;
+        }
       } else {
-        calculatedScore = Math.max(0, 50 - (selectedLogs.size * 5));
-        feedbackMessage = `Incorrect assessment. You marked ${selectedLogs.size} logs as suspicious but classified the overall situation as safe.`;
+        // Incorrect classification - system is compromised but user said safe
+        calculatedScore = Math.max(0, 20 - (maliciousLogs.length * 2));
+        feedbackMessage = `Incorrect! This system was compromised with ${maliciousLogs.length} malicious activities. You missed critical ransomware indicators.`;
       }
     } else {
-      const detectionRate = selectedMalicious.length / maliciousLogs.length;
-      const falsePositiveRate = selectedBenign.length / (logs.length - maliciousLogs.length);
-      
-      calculatedScore = Math.round((detectionRate * 70) + ((1 - falsePositiveRate) * 30));
-      
-      if (detectionRate > 0.8 && falsePositiveRate < 0.1) {
-        feedbackMessage = `Excellent work! You detected ${selectedMalicious.length}/${maliciousLogs.length} malicious activities with minimal false positives.`;
-      } else if (detectionRate > 0.5) {
-        feedbackMessage = `Good detection! You found ${selectedMalicious.length}/${maliciousLogs.length} malicious activities, but had ${selectedBenign.length} false positives.`;
+      // User classified as compromised
+      if (!systemIsActuallySafe) {
+        // Correct classification - system is compromised
+        const detectionRate = maliciousLogs.length > 0 ? selectedMalicious.length / maliciousLogs.length : 0;
+        const totalBenignLogs = logs.length - maliciousLogs.length;
+        const falsePositiveRate = totalBenignLogs > 0 ? selectedBenign.length / totalBenignLogs : 0;
+        
+        calculatedScore = Math.round((detectionRate * 70) + ((1 - falsePositiveRate) * 30));
+        
+        if (detectionRate > 0.8 && falsePositiveRate < 0.1) {
+          feedbackMessage = `Excellent work! You detected ${selectedMalicious.length}/${maliciousLogs.length} malicious activities with minimal false positives.`;
+        } else if (detectionRate > 0.5) {
+          feedbackMessage = `Good detection! You found ${selectedMalicious.length}/${maliciousLogs.length} malicious activities, but had ${selectedBenign.length} false positives.`;
+        } else {
+          feedbackMessage = `Needs improvement. You only detected ${selectedMalicious.length}/${maliciousLogs.length} malicious activities. Look for file encryption patterns, suspicious executables, and network anomalies.`;
+        }
       } else {
-        feedbackMessage = `Needs improvement. You only detected ${selectedMalicious.length}/${maliciousLogs.length} malicious activities. Look for file encryption patterns, suspicious executables, and network anomalies.`;
+        // Incorrect classification - system is safe but user said compromised
+        calculatedScore = Math.max(0, 30 - (selectedLogs.size * 2));
+        feedbackMessage = `Incorrect! This system was safe. You marked ${selectedLogs.size} benign activities as malicious. Practice distinguishing between suspicious but normal activities and actual threats.`;
       }
+    }
+
+    // Ensure score is never NaN
+    if (isNaN(calculatedScore)) {
+      calculatedScore = 0;
     }
 
     setScore(calculatedScore);

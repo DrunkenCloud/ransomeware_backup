@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { JSX, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,33 +9,29 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-// Sample training data
-const trainingData = [
-  { age: 25, income: 30000, education: "High School", previousPurchases: 0, outcome: "No" },
-  { age: 35, income: 50000, education: "Bachelor", previousPurchases: 2, outcome: "Yes" },
-  { age: 45, income: 70000, education: "Master", previousPurchases: 5, outcome: "Yes" },
-  { age: 22, income: 25000, education: "High School", previousPurchases: 0, outcome: "No" },
-  { age: 38, income: 60000, education: "Bachelor", previousPurchases: 3, outcome: "Yes" },
-  { age: 28, income: 40000, education: "Bachelor", previousPurchases: 1, outcome: "No" },
-  { age: 50, income: 80000, education: "Master", previousPurchases: 7, outcome: "Yes" },
-  { age: 30, income: 45000, education: "Bachelor", previousPurchases: 2, outcome: "Yes" },
-  { age: 26, income: 35000, education: "High School", previousPurchases: 1, outcome: "No" },
-  { age: 42, income: 65000, education: "Master", previousPurchases: 4, outcome: "Yes" },
-  { age: 33, income: 55000, education: "Bachelor", previousPurchases: 3, outcome: "Yes" },
-  { age: 24, income: 28000, education: "High School", previousPurchases: 0, outcome: "No" },
-  { age: 47, income: 75000, education: "Master", previousPurchases: 6, outcome: "Yes" },
-  { age: 29, income: 42000, education: "Bachelor", previousPurchases: 1, outcome: "No" },
-  { age: 36, income: 58000, education: "Bachelor", previousPurchases: 4, outcome: "Yes" },
-]
+// Sample training data (randomized)
+function generateRandomData(num: number) {
+  const educations = ["High School", "Bachelor", "Master"];
+  return Array.from({ length: num }, () => {
+    const age = Math.floor(Math.random() * 35) + 20; // 20-54
+    const income = Math.floor(Math.random() * 60000) + 25000; // 25k-85k
+    const education = educations[Math.floor(Math.random() * educations.length)];
+    const previousPurchases = Math.floor(Math.random() * 8); // 0-7
+    // Simple rule for outcome: more likely 'Yes' with higher income/education/purchases
+    let score = 0;
+    if (education === "Bachelor") score += 1;
+    if (education === "Master") score += 2;
+    if (income > 60000) score += 2;
+    else if (income > 40000) score += 1;
+    if (previousPurchases > 3) score += 2;
+    else if (previousPurchases > 1) score += 1;
+    const outcome = score >= 4 ? "Yes" : "No";
+    return { age, income, education, previousPurchases, outcome };
+  });
+}
 
-// Test data
-const testData = [
-  { age: 31, income: 48000, education: "Bachelor", previousPurchases: 2, outcome: "Yes" },
-  { age: 27, income: 32000, education: "High School", previousPurchases: 0, outcome: "No" },
-  { age: 44, income: 68000, education: "Master", previousPurchases: 5, outcome: "Yes" },
-  { age: 23, income: 26000, education: "High School", previousPurchases: 1, outcome: "No" },
-  { age: 39, income: 62000, education: "Bachelor", previousPurchases: 3, outcome: "Yes" },
-]
+const trainingData = generateRandomData(15);
+const testData = generateRandomData(5);
 
 interface TreeNode {
   id: string

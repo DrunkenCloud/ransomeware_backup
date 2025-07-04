@@ -99,6 +99,75 @@ const generateBenignLogs = (count: number, startTime: Date): LogEntry[] => {
   return logs;
 };
 
+const generateSuspiciousButSafeLogs = (startTime: Date): LogEntry[] => {
+  const logs: LogEntry[] = [];
+  const suspiciousUser = getRandomElement(users);
+  
+  // Generate 15-20 mildly suspicious but benign activities
+  const suspiciousCount = 15 + Math.floor(Math.random() * 6);
+  
+  for (let i = 0; i < suspiciousCount; i++) {
+    const timeOffset = 30 + Math.random() * 400; // Spread over ~7 hours
+    const user = i < 3 ? suspiciousUser : getRandomElement(users);
+    
+    const suspiciousActivities = [
+      {
+        type: 'FILE_ACCESS' as const,
+        process: 'explorer.exe',
+        message: `Multiple file access attempts in short succession in C:\\Users\\${user}\\Downloads\\`,
+      },
+      {
+        type: 'NETWORK' as const,
+        process: 'chrome.exe',
+        message: `Connection to unfamiliar domain: temp-downloads-${Math.floor(Math.random() * 1000)}.com`,
+      },
+      {
+        type: 'PROCESS' as const,
+        process: 'powershell.exe',
+        message: `PowerShell script execution by user ${user}`,
+      },
+      {
+        type: 'SECURITY' as const,
+        process: 'winlogon.exe',
+        message: `Failed login attempt for user ${user} from workstation`,
+      },
+      {
+        type: 'FILE_ACCESS' as const,
+        process: 'winrar.exe',
+        message: `Archive extraction: temp_files_${Math.floor(Math.random() * 100)}.zip`,
+      },
+      {
+        type: 'NETWORK' as const,
+        process: 'firefox.exe',
+        message: `Download initiated from external source: file_${Math.floor(Math.random() * 1000)}.exe`,
+      },
+      {
+        type: 'SYSTEM' as const,
+        process: 'cmd.exe',
+        message: `Command line utility accessed by ${user}`,
+      },
+      {
+        type: 'FILE_ACCESS' as const,
+        process: 'notepad.exe',
+        message: `Text file created: C:\\Users\\${user}\\Desktop\\notes_${Math.floor(Math.random() * 100)}.txt`,
+      }
+    ];
+    
+    const activity = getRandomElement(suspiciousActivities);
+    
+    logs.push({
+      timestamp: generateTimestamp(startTime, timeOffset),
+      type: activity.type,
+      user,
+      process: activity.process,
+      message: activity.message,
+      isMalicious: false // These are suspicious but not actually malicious
+    });
+  }
+  
+  return logs;
+};
+
 const generateMaliciousLogs = (startTime: Date): LogEntry[] => {
   const logs: LogEntry[] = [];
   const attackUser = getRandomElement(users);
@@ -240,12 +309,28 @@ const generateMaliciousLogs = (startTime: Date): LogEntry[] => {
 
 export const generateSystemLogs = (): LogEntry[] => {
   const startTime = new Date('2024-06-12T08:00:00');
-  const benignLogs = generateBenignLogs(80, startTime);
-  const maliciousLogs = generateMaliciousLogs(startTime);
   
-  // Combine and sort by timestamp
-  const allLogs = [...benignLogs, ...maliciousLogs];
-  allLogs.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  // Randomly decide if this should be a safe system or compromised system
+  // 30% chance of being truly safe, 70% chance of being compromised
+  const isSafeSystem = Math.random() < 0.5;
   
-  return allLogs;
+  if (isSafeSystem) {
+    // Generate truly safe system with only benign logs and some mildly suspicious but safe activities
+    const benignLogs = generateBenignLogs(65, startTime);
+    const suspiciousButSafeLogs = generateSuspiciousButSafeLogs(startTime);
+    
+    const allLogs = [...benignLogs, ...suspiciousButSafeLogs];
+    allLogs.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    return allLogs;
+  } else {
+    // Generate compromised system with actual ransomware attack
+    const benignLogs = generateBenignLogs(60, startTime);
+    const maliciousLogs = generateMaliciousLogs(startTime);
+    
+    const allLogs = [...benignLogs, ...maliciousLogs];
+    allLogs.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    return allLogs;
+  }
 };
