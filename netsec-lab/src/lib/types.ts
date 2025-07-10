@@ -1,6 +1,6 @@
 export type NodeState = 'healthy' | 'infected' | 'hardened';
 export type PlayerRole = 'attacker' | 'defender' | null;
-export type ActionType = 'deploy_virus' | 'deploy_worm' | 'scan' | 'shield' | 'exfiltrate_data';
+export type ActionType = 'deploy_virus' | 'deploy_worm' | 'scan' | 'shield' | 'exfiltrate_data' | 'disable_defenses' | 'system_restore';
 
 export interface Node {
   id: string;

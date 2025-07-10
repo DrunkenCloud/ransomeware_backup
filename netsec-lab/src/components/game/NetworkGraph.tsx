@@ -36,7 +36,7 @@ const stateConfig = {
 };
 
 export default function NetworkGraph({ nodes, edges, onNodeClick, activeAction }: NetworkGraphProps) {
-  const isAttackerAction = activeAction?.startsWith('deploy') || activeAction === 'exfiltrate_data';
+  const isAttackerAction = activeAction?.startsWith('deploy') || activeAction === 'exfiltrate_data' || activeAction === 'disable_defenses';
   const cursorClass = activeAction ? (isAttackerAction ? 'cursor-crosshair' : 'cursor-grab') : 'cursor-default';
 
   return (
@@ -82,19 +82,19 @@ export default function NetworkGraph({ nodes, edges, onNodeClick, activeAction }
           return (
             <g key={node.id} onClick={() => onNodeClick(node.id)} className="cursor-pointer group" transform={`translate(${node.x}, ${node.y})`}>
               {node.state === 'infected' && (
-                <circle r="40" fill="none" stroke={config.stroke} strokeWidth="2" className="node-infected-pulse" />
+                <circle r="35" fill="none" stroke={config.stroke} strokeWidth="2" className="node-infected-pulse" />
               )}
               {node.state === 'hardened' && (
-                <circle r="45" fill="none" stroke={config.stroke} strokeWidth="3" strokeDasharray="10 5" className="node-hardened-shield" />
+                <circle r="38" fill="none" stroke={config.stroke} strokeWidth="3" strokeDasharray="8 4" className="node-hardened-shield" />
               )}
 
-              <circle r="40" fill={config.fill} stroke={config.stroke} strokeWidth="2" className="transition-all duration-300 group-hover:stroke-width-4 group-hover:scale-105 transform-gpu" />
+              <circle r="30" fill={config.fill} stroke={config.stroke} strokeWidth="2" className="transition-all duration-300 group-hover:stroke-width-4 group-hover:scale-105 transform-gpu" />
               
-              <foreignObject x="-20" y="-20" width="40" height="40">
+              <foreignObject x="-15" y="-15" width="30" height="30">
                 <NodeIcon className="w-full h-full transition-colors duration-300" style={{ color: config.iconColor }} />
               </foreignObject>
 
-              <text x="0" y="60" textAnchor="middle" fill={config.textColor} className="font-semibold text-lg transition-colors duration-300 select-none">
+              <text x="0" y="45" textAnchor="middle" fill={config.textColor} className="font-semibold text-base transition-colors duration-300 select-none">
                 {node.label}
               </text>
             </g>

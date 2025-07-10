@@ -2,22 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Bug, ShieldCheck } from 'lucide-react';
-import type { Edge, PlayerRole, ActionType, GameState } from '@/lib/types';
+import type { PlayerRole, ActionType, GameState } from '@/lib/types';
 import NetworkGraph from '@/components/game/NetworkGraph';
 import PlayerActions from '@/components/game/PlayerActions';
 import RoleSelector from '@/components/game/RoleSelector';
 import { useToast } from '@/hooks/use-toast';
 import GameOverDialog from './GameOverDialog';
 import { getGameStateAction, performPlayerAction, resetGameAction } from '@/app/game/actions';
-
-const initialEdges: Edge[] = [
-  { from: '1', to: '2' },
-  { from: '1', to: '3' },
-  { from: '2', to: '4' },
-  { from: '3', to: '4' },
-  { from: '4', to: '5' },
-  { from: '4', to: '6' },
-];
 
 export default function GameBoard({ roomCode }: { roomCode: string }) {
   const [playerRole, setPlayerRole] = useState<PlayerRole>(null);
@@ -107,7 +98,7 @@ export default function GameBoard({ roomCode }: { roomCode: string }) {
     return <div className="flex min-h-screen items-center justify-center"><p>Loading Game...</p></div>;
   }
   
-  const { nodes, attackerScore, defenderScore, winner, cooldowns } = gameState;
+  const { nodes, edges, attackerScore, defenderScore, winner, cooldowns } = gameState;
 
   return (
     <div className="flex flex-col min-h-screen p-4 gap-4">
@@ -138,7 +129,7 @@ export default function GameBoard({ roomCode }: { roomCode: string }) {
 
       <main className="flex-grow grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="md:col-span-3 bg-card rounded-lg shadow-md p-4 relative overflow-hidden">
-            <NetworkGraph nodes={nodes} edges={initialEdges} onNodeClick={handleNodeClick} activeAction={activeAction} />
+            <NetworkGraph nodes={nodes} edges={edges} onNodeClick={handleNodeClick} activeAction={activeAction} />
         </div>
         <div className="md:col-span-1">
             <PlayerActions role={playerRole} onAction={handleAction} cooldowns={cooldowns} />

@@ -1,0 +1,221 @@
+{
+  "nodes": [
+    {
+      "id": "1",
+      "label": "Firewall",
+      "state": "healthy",
+      "x": 100,
+      "y": 300
+    },
+    {
+      "id": "2",
+      "label": "Web Server",
+      "state": "healthy",
+      "x": 250,
+      "y": 150
+    },
+    {
+      "id": "3",
+      "label": "App Server",
+      "state": "healthy",
+      "x": 450,
+      "y": 150
+    },
+    {
+      "id": "4",
+      "label": "DB Server",
+      "state": "healthy",
+      "x": 650,
+      "y": 150
+    },
+    {
+      "id": "5",
+      "label": "Admin PC",
+      "state": "healthy",
+      "x": 450,
+      "y": 450
+    },
+    {
+      "id": "6",
+      "label": "Dev PC",
+      "state": "healthy",
+      "x": 650,
+      "y": 450
+    },
+    {
+      "id": "7",
+      "label": "VPN Gateway",
+      "state": "healthy",
+      "x": 250,
+      "y": 450
+    },
+    {
+      "id": "8",
+      "label": "Analytics",
+      "state": "healthy",
+      "x": 800,
+      "y": 150
+    },
+    {
+      "id": "9",
+      "label": "Cache Server",
+      "state": "healthy",
+      "x": 450,
+      "y": 50
+    },
+    {
+      "id": "10",
+      "label": "User PC",
+      "state": "healthy",
+      "x": 800,
+      "y": 450
+    },
+    {
+      "id": "11",
+      "label": "IoT Gateway",
+      "state": "healthy",
+      "x": 100,
+      "y": 50
+    },
+    {
+      "id": "12",
+      "label": "Backup Server",
+      "state": "healthy",
+      "x": 100,
+      "y": 550
+    },
+    {
+      "id": "13",
+      "label": "SCADA System",
+      "state": "healthy",
+      "x": 800,
+      "y": 50
+    },
+    {
+      "id": "14",
+      "label": "Public WiFi",
+      "state": "healthy",
+      "x": 800,
+      "y": 550
+    },
+    {
+      "id": "15",
+      "label": "CEO Laptop",
+      "state": "healthy",
+      "x": 450,
+      "y": 300
+    }
+  ],
+  "edges": [
+    {
+      "from": "2",
+      "to": "12"
+    },
+    {
+      "from": "12",
+      "to": "1"
+    },
+    {
+      "from": "1",
+      "to": "14"
+    },
+    {
+      "from": "14",
+      "to": "13"
+    },
+    {
+      "from": "13",
+      "to": "4"
+    },
+    {
+      "from": "4",
+      "to": "8"
+    },
+    {
+      "from": "8",
+      "to": "11"
+    },
+    {
+      "from": "11",
+      "to": "15"
+    },
+    {
+      "from": "15",
+      "to": "3"
+    },
+    {
+      "from": "3",
+      "to": "5"
+    },
+    {
+      "from": "5",
+      "to": "6"
+    },
+    {
+      "from": "6",
+      "to": "9"
+    },
+    {
+      "from": "9",
+      "to": "7"
+    },
+    {
+      "from": "7",
+      "to": "10"
+    },
+    {
+      "from": "10",
+      "to": "2"
+    },
+    {
+      "from": "14",
+      "to": "10"
+    },
+    {
+      "from": "13",
+      "to": "5"
+    },
+    {
+      "from": "8",
+      "to": "12"
+    },
+    {
+      "from": "10",
+      "to": "15"
+    },
+    {
+      "from": "2",
+      "to": "4"
+    },
+    {
+      "from": "2",
+      "to": "14"
+    },
+    {
+      "from": "5",
+      "to": "9"
+    },
+    {
+      "from": "11",
+      "to": "2"
+    },
+    {
+      "from": "14",
+      "to": "6"
+    },
+    {
+      "from": "4",
+      "to": "3"
+    },
+    {
+      "from": "8",
+      "to": "14"
+    }
+  ],
+  "attackerScore": 0,
+  "defenderScore": 0,
+  "cooldowns": {},
+  "winner": null,
+  "lastUpdated": 1752074113778,
+  "events": []
+}
