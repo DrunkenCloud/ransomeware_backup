@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ransomware Kill Chain Unpacked</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .lab-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .timeline-container {
+            position: relative;
+            margin: 40px 0;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #ff6b6b, #ee5a24);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 30px 0;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .timeline-item.active {
+            opacity: 1;
+            transform: scale(1.02);
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content,
+        .timeline-item:nth-child(even) .timeline-content {
+            left: 0;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .timeline-content {
+            position: relative;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 2px solid #f1f2f6;
+            max-width: 98%;
+            width: 98%;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            margin: 0 auto;
+        }
+
+        .timeline-item.active .timeline-content {
+            border-color: #ff6b6b;
+            box-shadow: 0 8px 25px rgba(255,107,107,0.3);
+        }
+
+        .timeline-marker {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background: #ddd;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid white;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item.active .timeline-marker {
+            background: #ff6b6b;
+            width: 25px;
+            height: 25px;
+        }
+
+        .stage-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stage-description {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .techniques-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .techniques-list h4 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .technique-tag {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 2px;
+            color: #495057;
+        }
+
+        .log-examples {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+        }
+
+        .mitre-mapping {
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            background: #ecf0f1;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .lab-instructions {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .quiz-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .quiz-question {
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .quiz-options {
+            list-style: none;
+        }
+
+        .quiz-options li {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-options li:hover {
+            background: #e9ecef;
+        }
+
+        .quiz-options li.correct {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .quiz-options li.incorrect {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        @media (max-width: 900px) {
+            .timeline-content {
+                max-width: 99vw;
+                width: 99vw;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .timeline-container {
+                overflow-x: auto;
+                padding-bottom: 20px;
+            }
+            .timeline {
+                min-width: 320px;
+            }
+            .timeline::before {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .timeline-item .timeline-content {
+                max-width: 99vw;
+                width: 99vw;
+            }
+            .timeline-marker {
+                left: 50% !important;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 Ransomware Kill Chain Unpacked</h1>
+            <p>Interactive Lab: Understanding the Ransomware Attack Lifecycle</p>
+        </div>
+
+        <div class="lab-section">
+            <div class="lab-instructions">
+                <h3>📋 Lab Instructions</h3>
+                <p><strong>Objective:</strong> Learn to identify and map ransomware attack stages by analyzing log entries and understanding common techniques used at each phase.</p>
+                <p><strong>Duration:</strong> 45-60 minutes</p>
+                <p><strong>How to Use:</strong> Click on each timeline stage to reveal techniques, log examples, and MITRE ATT&CK mappings. Complete the quiz questions to test your understanding.</p>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="startLab()">Start Lab</button>
+                <button class="btn" onclick="nextStage()" id="nextBtn" disabled>Next Stage</button>
+                <button class="btn" onclick="resetLab()">Reset</button>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline" id="timeline">
+                    <!-- Timeline items will be generated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="quiz-section" id="quizSection" style="display: none;">
+                <div class="quiz-question" id="quizQuestion"></div>
+                <ul class="quiz-options" id="quizOptions"></ul>
+                <button class="btn" onclick="submitAnswer()" id="submitBtn" style="display: none;">Submit Answer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ransomwareStages = [
+            {
+                title: "Initial Access",
+                description: "Attackers gain initial foothold into the target network through various entry points.",
+                techniques: ["Phishing Emails", "RDP Brute Force", "VPN Exploitation", "Supply Chain Compromise"],
+                mitre: "T1566 (Phishing), T1078 (Valid Accounts), T1190 (Exploit Public-Facing Application)",
+                logExample: `2024-01-15 14:32:15 - WARNING: Multiple failed RDP login attempts from 192.168.1.100
+2024-01-15 14:33:42 - INFO: Successful RDP login for user 'administrator' from 192.168.1.100
+2024-01-15 14:34:10 - ALERT: Suspicious PowerShell execution detected`,
+                quiz: {
+                    question: "Which log entry most clearly indicates the Initial Access phase?",
+                    options: [
+                        "File encryption detected on C:\\Users\\Documents\\",
+                        "Multiple failed RDP login attempts followed by successful login",
+                        "Lateral movement to domain controller detected",
+                        "Ransom note dropped in multiple directories"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Execution",
+                description: "Malicious code is executed on the compromised system to establish persistence.",
+                techniques: ["PowerShell Scripts", "Scheduled Tasks", "Registry Modifications", "Service Creation"],
+                mitre: "T1059 (Command and Scripting Interpreter), T1053 (Scheduled Task), T1547 (Boot or Logon Autostart)",
+                logExample: `2024-01-15 14:35:20 - INFO: PowerShell process started with encoded command
+2024-01-15 14:35:45 - WARNING: New scheduled task created: 'WindowsUpdate_Check'
+2024-01-15 14:36:12 - ALERT: Registry modification detected in Run key`,
+                quiz: {
+                    question: "What technique is commonly used in the Execution phase?",
+                    options: [
+                        "Network scanning",
+                        "PowerShell script execution",
+                        "Data exfiltration",
+                        "File encryption"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Persistence",
+                description: "Attackers establish persistent access to maintain their foothold in the environment.",
+                techniques: ["Registry Run Keys", "Scheduled Tasks", "Service Installation", "WMI Event Subscriptions"],
+                mitre: "T1547.001 (Registry Run Keys), T1543.003 (Windows Service), T1546.003 (WMI Event Subscription)",
+                logExample: `2024-01-15 14:37:30 - INFO: New service installed: 'Windows Security Update'
+2024-01-15 14:38:15 - WARNING: Registry Run key modified
+2024-01-15 14:39:00 - ALERT: WMI event subscription created`,
+                quiz: {
+                    question: "Which technique is primarily used for maintaining persistence?",
+                    options: [
+                        "Port scanning",
+                        "Registry Run key modification",
+                        "Password spraying",
+                        "File compression"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Privilege Escalation",
+                description: "Attackers attempt to gain higher-level permissions to access more system resources.",
+                techniques: ["Token Impersonation", "UAC Bypass", "Exploit Vulnerabilities", "Credential Dumping"],
+                mitre: "T1134 (Access Token Manipulation), T1548.002 (Bypass UAC), T1055 (Process Injection)",
+                logExample: `2024-01-15 14:40:20 - CRITICAL: Token impersonation detected
+2024-01-15 14:41:05 - WARNING: UAC bypass attempt detected
+2024-01-15 14:41:30 - ALERT: LSASS process accessed by suspicious process`,
+                quiz: {
+                    question: "What is the primary goal of the Privilege Escalation phase?",
+                    options: [
+                        "Encrypt user files",
+                        "Gain administrator privileges",
+                        "Scan network for targets",
+                        "Create backup copies"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Defense Evasion",
+                description: "Attackers use various techniques to avoid detection by security tools and analysts.",
+                techniques: ["Disable Security Tools", "Process Hollowing", "Obfuscation", "Timestomp"],
+                mitre: "T1562.001 (Disable Security Tools), T1055.012 (Process Hollowing), T1027 (Obfuscated Files)",
+                logExample: `2024-01-15 14:42:10 - CRITICAL: Windows Defender disabled
+2024-01-15 14:42:45 - WARNING: Process hollowing detected
+2024-01-15 14:43:20 - ALERT: File timestamp modification detected`,
+                quiz: {
+                    question: "Which action is typical of Defense Evasion?",
+                    options: [
+                        "Creating new user accounts",
+                        "Disabling antivirus software",
+                        "Stealing credentials",
+                        "Mapping network drives"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Credential Access",
+                description: "Attackers steal account credentials to access additional systems and resources.",
+                techniques: ["LSASS Dumping", "Credential Harvesting", "Keylogging", "DCSync Attack"],
+                mitre: "T1003.001 (LSASS Memory), T1056.001 (Keylogging), T1558.001 (Golden Ticket)",
+                logExample: `2024-01-15 14:44:00 - CRITICAL: LSASS memory dump detected
+2024-01-15 14:44:30 - WARNING: Keylogger activity detected
+2024-01-15 14:45:15 - ALERT: Suspicious Kerberos ticket requests`,
+                quiz: {
+                    question: "What is the main objective of Credential Access?",
+                    options: [
+                        "Encrypt system files",
+                        "Harvest user passwords",
+                        "Install backdoors",
+                        "Delete security logs"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Discovery",
+                description: "Attackers gather information about the environment to plan their next moves.",
+                techniques: ["Network Scanning", "System Information", "Process Discovery", "Account Discovery"],
+                mitre: "T1083 (File and Directory Discovery), T1057 (Process Discovery), T1087 (Account Discovery)",
+                logExample: `2024-01-15 14:46:00 - INFO: Network scan detected from internal host
+2024-01-15 14:46:30 - WARNING: System information gathering via WMI
+2024-01-15 14:47:15 - ALERT: Active Directory enumeration detected`,
+                quiz: {
+                    question: "What type of activity characterizes the Discovery phase?",
+                    options: [
+                        "Data encryption",
+                        "Network reconnaissance",
+                        "Privilege escalation",
+                        "Payload delivery"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Lateral Movement",
+                description: "Attackers move through the network to reach high-value targets and gather more access.",
+                techniques: ["PsExec", "WMI", "SMB/Admin Shares", "Remote Desktop"],
+                mitre: "T1021.002 (SMB/Windows Admin Shares), T1021.001 (Remote Desktop Protocol), T1047 (WMI)",
+                logExample: `2024-01-15 14:48:00 - WARNING: PsExec execution detected on remote host
+2024-01-15 14:48:45 - ALERT: SMB admin share access from compromised host
+2024-01-15 14:49:30 - CRITICAL: WMI remote execution detected`,
+                quiz: {
+                    question: "Which tool is commonly used for lateral movement?",
+                    options: [
+                        "Notepad",
+                        "PsExec",
+                        "Calculator",
+                        "Registry Editor"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Collection",
+                description: "Attackers gather and stage data for encryption and potential exfiltration.",
+                techniques: ["Data Staging", "Archive Collection", "Screen Capture", "Clipboard Data"],
+                mitre: "T1560.001 (Archive via Utility), T1113 (Screen Capture), T1125 (Video Capture)",
+                logExample: `2024-01-15 14:50:15 - INFO: Large file archive created in temp directory
+2024-01-15 14:50:45 - WARNING: Screen capture activity detected
+2024-01-15 14:51:20 - ALERT: Clipboard monitoring detected`,
+                quiz: {
+                    question: "What is the primary purpose of the Collection phase?",
+                    options: [
+                        "Delete system files",
+                        "Gather data for encryption",
+                        "Create user accounts",
+                        "Modify system settings"
+                    ],
+                    correct: 1
+                }
+            },
+            {
+                title: "Impact",
+                description: "The final phase where files are encrypted and ransom notes are deployed.",
+                techniques: ["Data Encryption", "Ransom Note Deployment", "Shadow Copy Deletion", "Backup Destruction"],
+                mitre: "T1486 (Data Encrypted for Impact), T1490 (Inhibit System Recovery), T1491 (Defacement)",
+                logExample: `2024-01-15 14:52:00 - CRITICAL: Mass file encryption detected
+2024-01-15 14:52:30 - ALERT: Shadow copies deleted
+2024-01-15 14:53:00 - WARNING: Ransom note files created
+2024-01-15 14:53:15 - CRITICAL: Backup services stopped`,
+                quiz: {
+                    question: "What marks the completion of a ransomware attack?",
+                    options: [
+                        "Initial system compromise",
+                        "File encryption and ransom note deployment",
+                        "Network scanning",
+                        "Privilege escalation"
+                    ],
+                    correct: 1
+                }
+            }
+        ];
+
+        let currentStage = -1;
+        let labStarted = false;
+        let selectedAnswer = null;
+
+        function initTimeline() {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            ransomwareStages.forEach((stage, index) => {
+                const timelineItem = document.createElement('div');
+                timelineItem.className = 'timeline-item';
+                timelineItem.id = `stage-${index}`;
+                timelineItem.onclick = () => selectStage(index);
+                
+                timelineItem.innerHTML = `
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="stage-title">${stage.title}</div>
+                        <div class="stage-description">${stage.description}</div>
+                        <div class="techniques-list">
+                            <h4>Common Techniques:</h4>
+                            ${stage.techniques.map(tech => `<span class="technique-tag">${tech}</span>`).join('')}
+                        </div>
+                        <div class="mitre-mapping">
+                            <strong>MITRE ATT&CK:</strong> ${stage.mitre}
+                        </div>
+                        <div class="log-examples">
+                            <strong>Sample Log Entries:</strong><br>
+                            ${stage.logExample}
+                        </div>
+                    </div>
+                `;
+                
+                timeline.appendChild(timelineItem);
+            });
+        }
+
+        function startLab() {
+            labStarted = true;
+            currentStage = 0;
+            document.getElementById('nextBtn').disabled = false;
+            selectStage(0);
+            updateProgress();
+        }
+
+        function selectStage(index) {
+            if (!labStarted && index !== 0) return;
+            
+            // Remove active class from all stages
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to selected stage
+            document.getElementById(`stage-${index}`).classList.add('active');
+            
+            currentStage = index;
+            showQuiz(index);
+            updateProgress();
+        }
+
+        function showQuiz(stageIndex) {
+            const quiz = ransomwareStages[stageIndex].quiz;
+            const quizSection = document.getElementById('quizSection');
+            const quizQuestion = document.getElementById('quizQuestion');
+            const quizOptions = document.getElementById('quizOptions');
+            
+            quizQuestion.textContent = quiz.question;
+            quizOptions.innerHTML = '';
+            
+            quiz.options.forEach((option, index) => {
+                const li = document.createElement('li');
+                li.textContent = option;
+                li.onclick = () => selectAnswer(index, li);
+                quizOptions.appendChild(li);
+            });
+            
+            quizSection.style.display = 'block';
+            document.getElementById('submitBtn').style.display = 'inline-block';
+            selectedAnswer = null;
+        }
+
+        function selectAnswer(index, element) {
+            // Remove previous selections
+            document.querySelectorAll('.quiz-options li').forEach(li => {
+                li.classList.remove('selected');
+                li.style.backgroundColor = '';
+            });
+            
+            // Mark selected
+            element.classList.add('selected');
+            element.style.backgroundColor = '#e3f2fd';
+            selectedAnswer = index;
+        }
+
+        function submitAnswer() {
+            if (selectedAnswer === null) return;
+            
+            const correctAnswer = ransomwareStages[currentStage].quiz.correct;
+            const options = document.querySelectorAll('.quiz-options li');
+            
+            options.forEach((option, index) => {
+                if (index === correctAnswer) {
+                    option.classList.add('correct');
+                } else if (index === selectedAnswer && index !== correctAnswer) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            document.getElementById('submitBtn').style.display = 'none';
+            
+            // Enable next button or show completion
+            if (currentStage < ransomwareStages.length - 1) {
+                document.getElementById('nextBtn').disabled = false;
+            } else {
+                document.getElementById('nextBtn').textContent = 'Lab Complete!';
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+
+        function nextStage() {
+            if (currentStage < ransomwareStages.length - 1) {
+                selectStage(currentStage + 1);
+                document.getElementById('nextBtn').disabled = true;
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentStage + 1) / ransomwareStages.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function resetLab() {
+            currentStage = -1;
+            labStarted = false;
+            selectedAnswer = null;
+            
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('nextBtn').textContent = 'Next Stage';
+            document.getElementById('quizSection').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+        }
+
+        // Initialize the lab
+        initTimeline();
+    </script>
+</body>
+</html>
