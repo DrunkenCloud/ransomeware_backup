@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'NetVis',
-  description: 'A simple neural network visualizer',
+  title: 'CNN Visualization Lab',
+  description: 'Lab for understanding Convolutional Neural Networks',
 };
 
 export default function RootLayout({

@@ -57,7 +57,7 @@ export function InvestigationNav({ activeStep, setActiveStep, score }: Investiga
                 <item.icon />
                 {item.label}
               </SidebarMenuButton>
-            </SidebarMenuItem>
+            </SidebarMenuItem>2
           ))}
         </SidebarMenu>
       </div>

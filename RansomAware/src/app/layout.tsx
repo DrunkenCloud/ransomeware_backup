@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'RansomAware',
-  description: 'An interactive training simulation for negotiating with ransomware threat actors.',
+  title: 'Ransomware Negotiation Lab',
+  description: 'Interactive lab for understanding ransomware negotiation scenarios',
 };
 
 export default function RootLayout({

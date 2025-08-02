@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'CyberSleuth',
-  description: 'An interactive SQL investigation game.',
+  title: 'SQL Investigation Lab',
+  description: 'Lab for learning SQL-based cyber investigation techniques',
 };
 
 export default function RootLayout({
