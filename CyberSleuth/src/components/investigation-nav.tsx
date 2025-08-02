@@ -63,7 +63,7 @@ export function InvestigationNav({ activeStep, setActiveStep, score }: Investiga
       </div>
       <SidebarFooter className="p-4 space-y-4">
         <Card className="bg-sidebar-accent/20 border-sidebar-border">
-          <CardContent className="p-3">
+          <CardContent className="p-3 text-white">
             <div className="text-sm font-medium">Performance Score</div>
             <div className="flex items-center gap-2 mt-1">
               <Star className="h-5 w-5 text-yellow-400" />
