@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
@@ -31,7 +32,8 @@ function generateData(
 }
 
 export function LineLearner() {
-  const [trainingData, setTrainingData] = useState<DataPoint[]>([]);
+  const [allTrainingData, setAllTrainingData] = useState<DataPoint[]>([]);
+  const [visibleTrainingData, setVisibleTrainingData] = useState<DataPoint[]>([]);
   const [testData, setTestData] = useState<DataPoint[]>([]);
   const [isTestMode, setIsTestMode] = useState(false);
   const [lineHandles, setLineHandles] = useState<{ p1: Point; p2: Point }>({
@@ -43,13 +45,32 @@ export function LineLearner() {
   const resetData = useCallback(() => {
     const trueSlope = (Math.random() - 0.5) * 2; // -1 to 1
     const trueIntercept = Math.random() * (PLOT_SIZE / 2) + PLOT_SIZE / 4;
-    setTrainingData(generateData(NUM_TRAIN_POINTS, trueSlope, trueIntercept, NOISE_LEVEL));
+    setAllTrainingData(generateData(NUM_TRAIN_POINTS, trueSlope, trueIntercept, NOISE_LEVEL));
     setTestData(generateData(NUM_TEST_POINTS, trueSlope, trueIntercept, NOISE_LEVEL));
+    setVisibleTrainingData([]);
   }, []);
 
-  useEffect(() => {
+  const handleReset = useCallback(() => {
+    setIsTestMode(false);
+    setLineHandles({
+      p1: { x: 50, y: PLOT_SIZE / 2 },
+      p2: { x: PLOT_SIZE - 50, y: PLOT_SIZE / 2 },
+    });
+    setSlopeStep(0.05);
     resetData();
   }, [resetData]);
+
+  useEffect(() => {
+    handleReset();
+  }, [handleReset]);
+
+  const addDataPoint = useCallback(() => {
+    if (visibleTrainingData.length < allTrainingData.length) {
+      setVisibleTrainingData(current => [...current, allTrainingData[current.length]]);
+    }
+  }, [visibleTrainingData, allTrainingData]);
+
+  const canAddMorePoints = useMemo(() => visibleTrainingData.length < NUM_TRAIN_POINTS, [visibleTrainingData]);
 
   const { m, c } = useMemo(
     () => getLineParams(lineHandles.p1, lineHandles.p2),
@@ -61,8 +82,8 @@ export function LineLearner() {
     bias,
     variance,
   } = useMemo(
-    () => calculateMetrics(trainingData, m, c),
-    [trainingData, m, c]
+    () => calculateMetrics(visibleTrainingData, m, c),
+    [visibleTrainingData, m, c]
   );
 
   const { mse: mseTest } = useMemo(() => {
@@ -86,16 +107,6 @@ export function LineLearner() {
     setSlopeStep(value[0]);
   }, []);
 
-  const handleReset = useCallback(() => {
-    setIsTestMode(false);
-    setLineHandles({
-      p1: { x: 50, y: PLOT_SIZE / 2 },
-      p2: { x: PLOT_SIZE - 50, y: PLOT_SIZE / 2 },
-    });
-    setSlopeStep(0.05);
-    resetData();
-  }, [resetData]);
-
   return (
     <div className="w-full mx-auto flex flex-col gap-8 p-4 bg-card rounded-xl shadow-lg border mt-2">
       <header className="text-center">
@@ -109,7 +120,7 @@ export function LineLearner() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3">
           <InteractivePlot
-            trainingData={trainingData}
+            trainingData={visibleTrainingData}
             testData={testData}
             lineHandles={lineHandles}
             onLineChange={handleLineChange}
@@ -122,6 +133,10 @@ export function LineLearner() {
         </div>
         <div className="lg:col-span-1 flex flex-col gap-6">
           <Controls
+            onAddDataPoint={addDataPoint}
+            canAddMorePoints={canAddMorePoints}
+            numVisiblePoints={visibleTrainingData.length}
+            totalTrainPoints={NUM_TRAIN_POINTS}
             onTest={handleTest}
             onReset={handleReset}
             isTestMode={isTestMode}

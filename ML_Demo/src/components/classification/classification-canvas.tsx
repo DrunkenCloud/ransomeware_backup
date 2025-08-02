@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
@@ -8,11 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { cn } from '@/lib/utils';
 import { getLineParams } from '@/lib/line-learner-math';
 import { Separator } from '../ui/separator';
+import { Lightbulb, PlusCircle } from 'lucide-react';
 
 const PLOT_SIZE = 500;
 const POINT_RADIUS = 6;
 const NUM_TRAIN_POINTS_PER_CLASS = 20;
 const NUM_TEST_POINTS_PER_CLASS = 10;
+const TOTAL_TRAIN_POINTS = NUM_TRAIN_POINTS_PER_CLASS * 2;
 
 interface ClassificationMetrics {
   accuracy: number;
@@ -107,7 +110,8 @@ const MetricItem = ({ label, value, isHighlighted = false }: { label: string; va
 )
 
 export function ClassificationCanvas() {
-  const [trainingData, setTrainingData] = useState<ClassificationDataPoint[]>([]);
+  const [allTrainingData, setAllTrainingData] = useState<ClassificationDataPoint[]>([]);
+  const [visibleTrainingData, setVisibleTrainingData] = useState<ClassificationDataPoint[]>([]);
   const [testData, setTestData] = useState<ClassificationDataPoint[]>([]);
   const [isTestMode, setIsTestMode] = useState(false);
   const [lineHandles, setLineHandles] = useState<{ p1: Point; p2: Point }>({
@@ -117,26 +121,39 @@ export function ClassificationCanvas() {
   const plotRef = useRef<HTMLDivElement>(null);
   const [draggingHandle, setDraggingHandle] = useState<"p1" | "p2" | null>(null);
 
-  const resetData = useCallback(() => {
+  const resetData = useCallback((fullReset: boolean = true) => {
     const trueSlope = (Math.random() - 0.5);
     const trueIntercept = PLOT_SIZE / 2 + (Math.random() - 0.5) * 100;
     const offset = 100;
-    setTrainingData(generateClassificationData(NUM_TRAIN_POINTS_PER_CLASS, trueSlope, trueIntercept, offset));
+    const newTrainData = generateClassificationData(NUM_TRAIN_POINTS_PER_CLASS, trueSlope, trueIntercept, offset);
+    setAllTrainingData(newTrainData);
     setTestData(generateClassificationData(NUM_TEST_POINTS_PER_CLASS, trueSlope, trueIntercept, offset));
+
+    if (fullReset) {
+      setVisibleTrainingData([]);
+    } else {
+      setVisibleTrainingData(newTrainData);
+    }
   }, []);
 
-  const handleReset = useCallback(() => {
+  const handleFullReset = useCallback(() => {
     setIsTestMode(false);
     setLineHandles({
       p1: { x: 50, y: PLOT_SIZE / 2 },
       p2: { x: PLOT_SIZE - 50, y: PLOT_SIZE / 2 },
     });
-    resetData();
+    resetData(true);
   }, [resetData]);
   
   useEffect(() => {
-    handleReset();
-  }, [handleReset]);
+    handleFullReset();
+  }, [handleFullReset]);
+
+  const addDataPoint = useCallback(() => {
+    if (visibleTrainingData.length < allTrainingData.length) {
+      setVisibleTrainingData(current => [...current, allTrainingData[current.length]]);
+    }
+  }, [visibleTrainingData, allTrainingData]);
 
   const { m, c } = useMemo(
     () => getLineParams(lineHandles.p1, lineHandles.p2),
@@ -182,9 +199,6 @@ export function ClassificationCanvas() {
     if (!isFinite(m)) {
         const x_boundary = p1.x;
         if ((region === 'above' && x_boundary < plotSize/2) || (region === 'below' && x_boundary > plotSize/2)) {
-            // This logic feels complex, let's simplify for vertical line
-            // 'above' is blue (class B), 'below' is red (class A)
-            // if we predict B for smaller x, then we shade left blue
             return `polygon(0 0, ${x_boundary}px 0, ${x_boundary}px ${plotSize}px, 0 ${plotSize}px)`;
         }
         return `polygon(${x_boundary}px 0, ${plotSize}px 0, ${plotSize}px ${plotSize}px, ${x_boundary}px ${plotSize}px)`;
@@ -200,13 +214,15 @@ export function ClassificationCanvas() {
     }
   };
   
-  const trainMetrics = useMemo(() => calculateClassificationMetrics(trainingData, m, c), [trainingData, m, c]);
+  const trainMetrics = useMemo(() => calculateClassificationMetrics(visibleTrainingData, m, c), [visibleTrainingData, m, c]);
   const testMetrics = useMemo(() => {
     if (isTestMode) {
       return calculateClassificationMetrics(testData, m, c);
     }
     return null;
   }, [isTestMode, testData, m, c]);
+
+  const canAddMorePoints = visibleTrainingData.length < TOTAL_TRAIN_POINTS;
 
 
   return (
@@ -245,7 +261,7 @@ export function ClassificationCanvas() {
               />
             </svg>
             
-            {trainingData.map((point) => (
+            {visibleTrainingData.map((point) => (
               <div
                 key={point.id}
                 className={cn(
@@ -279,12 +295,25 @@ export function ClassificationCanvas() {
                     <CardDescription>Actions and performance</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0 flex flex-col gap-4">
-                     {!isTestMode ? (
-                        <Button onClick={() => setIsTestMode(true)} className="w-full" size="lg">Test Classifier</Button>
-                    ) : (
-                        <Button onClick={handleReset} variant="secondary" className="w-full" size="lg">Reset</Button>
-                    )}
-                    <Button onClick={resetData} className="w-full">Generate New Data</Button>
+                     {isTestMode ? (
+                         <Button onClick={handleFullReset} variant="secondary" className="w-full" size="lg">Reset Simulation</Button>
+                     ) : canAddMorePoints ? (
+                         <Button onClick={addDataPoint} className="w-full" size="lg">
+                           <PlusCircle className="mr-2" />
+                           Add Data Point ({visibleTrainingData.length}/{TOTAL_TRAIN_POINTS})
+                         </Button>
+                     ) : (
+                         <Button onClick={() => setIsTestMode(true)} className="w-full" size="lg">Finalize & Test Model</Button>
+                     )}
+
+                     {!isTestMode && !canAddMorePoints && (
+                        <div className="flex items-start gap-2 text-sm text-muted-foreground p-3 bg-primary/5 rounded-md border border-primary/20 mt-2">
+                           <Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-primary"/>
+                           <p>All training data added. Lock in your line to see how it performs on unseen test data.</p>
+                        </div>
+                     )}
+
+                    <Button onClick={() => resetData(false)} className="w-full" disabled={!isTestMode && canAddMorePoints}>Generate New Data</Button>
 
                     <Separator className="my-2"/>
                     

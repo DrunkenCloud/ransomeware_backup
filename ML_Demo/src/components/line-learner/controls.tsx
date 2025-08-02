@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -6,9 +7,13 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, PlusCircle } from "lucide-react";
 
 interface ControlsProps {
+  onAddDataPoint: () => void;
+  canAddMorePoints: boolean;
+  numVisiblePoints: number;
+  totalTrainPoints: number;
   onTest: () => void;
   onReset: () => void;
   isTestMode: boolean;
@@ -28,6 +33,10 @@ const MetricItem = ({ label, value, isHighlighted = false }: { label: string; va
 )
 
 export function Controls({ 
+  onAddDataPoint,
+  canAddMorePoints,
+  numVisiblePoints,
+  totalTrainPoints,
   onTest, 
   onReset, 
   isTestMode, 
@@ -66,17 +75,7 @@ export function Controls({
           </div>
           
           <div className="mt-4">
-            {!isTestMode ? (
-              <>
-                <Button onClick={onTest} size="lg" className="w-full">
-                  Finalize & Test Model
-                </Button>
-                <div className="flex items-start gap-2 text-sm text-muted-foreground p-3 bg-primary/5 rounded-md border border-primary/20 mt-2">
-                    <Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-primary"/>
-                    <p>Lock in your line to see how it performs on unseen test data.</p>
-                </div>
-              </>
-            ) : (
+            {isTestMode ? (
               <>
                 <Button onClick={onReset} variant="secondary" size="lg" className="w-full">
                   Reset Simulation
@@ -84,6 +83,21 @@ export function Controls({
                 <div className="flex items-start gap-2 text-sm text-muted-foreground p-3 bg-secondary rounded-md border mt-2">
                     <Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-secondary-foreground"/>
                     <p>Start over with a new set of data points to try again.</p>
+                </div>
+              </>
+            ) : canAddMorePoints ? (
+               <Button onClick={onAddDataPoint} size="lg" className="w-full">
+                  <PlusCircle />
+                  Add Data Point ({numVisiblePoints}/{totalTrainPoints})
+               </Button>
+            ) : (
+              <>
+                <Button onClick={onTest} size="lg" className="w-full">
+                  Finalize & Test Model
+                </Button>
+                <div className="flex items-start gap-2 text-sm text-muted-foreground p-3 bg-primary/5 rounded-md border border-primary/20 mt-2">
+                    <Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-primary"/>
+                    <p>All training data added. Lock in your line to see how it performs on unseen test data.</p>
                 </div>
               </>
             )}
